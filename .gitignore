@@ -1,43 +1,43 @@
-# Compiled class files
-*.class
+# Compiled class files (any folder)
+**/*.class
 
-# Logs
-*.log
+# Logs (any folder)
+**/*.log
 
-# Package files
-*.jar
-*.war
-*.ear
+# Package files (any folder)
+**/*.jar
+**/*.war
+**/*.ear
 
-# Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-dependency-reduced-pom.xml
-.buildNumber
-.mvn/timing.properties
+# Maven (any folder)
+**/target/
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/pom.xml.next
+**/dependency-reduced-pom.xml
+**/.buildNumber
+**/.mvn/timing.properties
 
-# Gradle
-.gradle/
-build/
+# Gradle (any folder)
+**/.gradle/
+**/build/
 
-# IntelliJ IDEA
-.idea/
-*.iml
-*.iws
-*.ipr
-out/
+# IntelliJ IDEA (any folder)
+**/.idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+**/out/
 
-# Eclipse
-.project
-.classpath
-.settings/
+# Eclipse (any folder)
+**/.project
+**/.classpath
+**/.settings/
 
-# VS Code
-.vscode/
+# VS Code (any folder)
+**/.vscode/
 
-# OS files
-.DS_Store
-Thumbs.db
+# OS files (any folder)
+**/.DS_Store
+**/Thumbs.db
