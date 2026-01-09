@@ -1,3 +1,5 @@
+package org.thebois.endpoints;
+
 import org.thebois.utils.FileHandler;
 
 import jakarta.ws.rs.GET;
