@@ -1,19 +1,34 @@
 services:
-  # Server setup
   server:
     build: ./Server/thebois-dtu-pay
     container_name: dtu-pay-server
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080"]
+      interval: 5s       # Increased from 1s to prevent premature failure
+      timeout: 5s
+      retries: 5        # Increased retries for slower Jenkins boots
+      start_period: 15s  # Increased to give Quarkus time to start
     networks:
       - dtu-network
 
-  # Client setup
   client:
     build: ./Client/dtu-pay-client
     container_name: dtu-pay-client
+    environment:
+      # This matches the System.getenv("SERVER_URL") in your Java code
+      # 'server' is the service name defined at the top of this file
+      - SERVER_URL=http://server:8080
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./Client/dtu-pay-client/target/surefire-reports:/app/target/surefire-reports
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     networks:
       - dtu-network
 
