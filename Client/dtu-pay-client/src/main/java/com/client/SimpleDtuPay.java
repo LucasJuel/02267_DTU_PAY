@@ -9,7 +9,10 @@ public class SimpleDtuPay {
     private final ApiCall apiCall;
 
     public SimpleDtuPay() {
-        String BASE_URL = "http://localhost:8080";
+        String envUrl = System.getenv("SERVER_URL");
+
+        String BASE_URL = (envUrl != null) ? envUrl : "http://localhost:8080";
+
         this.apiCall = new ApiCall(BASE_URL);
     }
 

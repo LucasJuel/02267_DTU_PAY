@@ -8,16 +8,20 @@ services:
       - "8080:8080"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:8080"]
-      interval: 1s
-      timeout: 1s
-      retries: 3
-      start_period: 3s
+      interval: 5s       # Increased from 1s to prevent premature failure
+      timeout: 5s
+      retries: 5        # Increased retries for slower Jenkins boots
+      start_period: 15s  # Increased to give Quarkus time to start
     networks:
       - dtu-network
 
   client:
     build: ./Client/dtu-pay-client
     container_name: dtu-pay-client
+    environment:
+      # This matches the System.getenv("SERVER_URL") in your Java code
+      # 'server' is the service name defined at the top of this file
+      - SERVER_URL=http://server:8080
     ports:
       - "8181:8181"
     volumes:
