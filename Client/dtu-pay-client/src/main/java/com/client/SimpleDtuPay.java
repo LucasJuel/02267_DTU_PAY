@@ -1,6 +1,7 @@
 package com.client;
 
 import com.client.utils.ApiCall;
+import java.net.http.HttpResponse;
 
 public class SimpleDtuPay {
     private final ApiCall apiCall;
@@ -8,12 +9,9 @@ public class SimpleDtuPay {
     public SimpleDtuPay() {
         String BASE_URL = "http://localhost:8080";
         this.apiCall = new ApiCall(BASE_URL);
-        // Constructor implementation
     }
-    // Implementation of SimpleDtuPay class
 
     public String register(Customer user) {
-        // Registration implementation
         String customerId = "customer-id-" + user.getName();
         try {
             String jsonBody = String.format("{\"customerId\":\"%s\",\"name\":\"%s\"}", customerId, user.getName());
@@ -27,7 +25,6 @@ public class SimpleDtuPay {
     }
     
     public String register(Merchant user) {
-        // Registration implementation
         try {
             String merchantId = "merchant-id-" + user.getName();
             String jsonBody = String.format("{\"merchantId\":\"%s\",\"name\":\"%s\"}", merchantId, user.getName());
@@ -40,17 +37,38 @@ public class SimpleDtuPay {
         }
     }
     
-    public boolean pay(int amount, String customerId, String merchantId) {
-        // Payment implementation
+    public boolean pay(float amount, String customerId, String merchantId) {
         try {
-            String jsonBody = String.format("{\"amount\":%d,\"customerId\":\"%s\",\"merchantId\":\"%s\"}", amount, customerId, merchantId);
+            String jsonBody = String.format(java.util.Locale.US, "{\"amount\":%.2f,\"customerId\":\"%s\",\"merchantId\":\"%s\"}", amount, customerId, merchantId);
             System.out.println("Payment request body: " + jsonBody);
             String res = apiCall.post("/payment/pay", jsonBody);
             System.out.println("Payment response: " + res);
+            if (res.length() == 0) {
+                System.err.println("Payment failed with response: " + res);
+                return false;
+            }
+            return true;
         } catch (Exception e) {
             System.err.println("Payment failed: " + e.getMessage());
             return false;
         }
-        return true;
+    }
+
+    public boolean pay(String amount, String customerId, String merchantId) {
+        try {
+            float amt = Float.parseFloat(amount);
+            String jsonBody = String.format(java.util.Locale.US, "{\"amount\":%.2f,\"customerId\":\"%s\",\"merchantId\":\"%s\"}", amt, customerId, merchantId);
+            System.out.println("Payment request body: " + jsonBody);
+            String res = apiCall.post("/payment/pay", jsonBody);
+            System.out.println("Payment response: " + res);
+            if (res.length() == 0) {
+                System.err.println("Payment failed with response: " + res);
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            System.err.println("Payment failed: " + e.getMessage());
+            return false;
+        }
     }
 }
