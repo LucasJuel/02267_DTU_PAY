@@ -4,7 +4,7 @@ services:
     build: ./Server/thebois-dtu-pay
     container_name: dtu-pay-server
     ports:
-      - "8181:8181"
+      - "8080:8080"
     networks:
       - dtu-network
 

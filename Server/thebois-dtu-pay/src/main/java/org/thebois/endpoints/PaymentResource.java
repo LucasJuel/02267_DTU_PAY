@@ -45,6 +45,7 @@ public class PaymentResource {
             String merchantId = paymentDetails.getMerchantId();
             String customerId = paymentDetails.getCustomerId();
             float amount = paymentDetails.getAmount();
+            System.out.println("Payment details - Merchant ID: " + merchantId + ", Customer ID: " + customerId + ", Amount: " + amount);
 
 
             Map<String, Object> payment = new HashMap<>();
@@ -53,7 +54,9 @@ public class PaymentResource {
             payment.put("customerId", customerId);
             existingPayments.add(payment);
             fileHandler.write(existingPayments);
-            return Response.ok().build();
+            System.out.println("Payment recorded successfully: " + payment);
+            System.out.println("All payments: " + existingPayments);
+            return Response.ok().entity("{\"message\": \"Payment for merchant " + merchantId + " registered successfully. With Customer " + customerId + " for amount " + amount + "\", \"merchantId\": \"" + merchantId + "\", \"customerId\": \"" + customerId + "\", \"amount\": " + amount + "}").build();
         } catch(Exception e){
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -85,58 +88,53 @@ public class PaymentResource {
                     .build();
         }
 
-    }   
-}
+    }
+    public static class PaymentRequest {
+        private float amount;
+        private String customerId;
+        private String merchantId;
+        public PaymentRequest() {
+        }
 
+        public float getAmount() {
+            return amount;
+        }
 
-//DTO for pay
-class PaymentRequest {
-    private int amount;
-    private String customerId;
-    private String merchantId;
-    private int status;
+        public void setAmount(float amount) {
+            this.amount = amount;
+        }
 
-    public PaymentRequest() {
+        public String getCustomerId() {
+            return customerId;
+        }
+
+        public void setCustomerId(String customerId) {
+            this.customerId = customerId;
+        }
+
+        public String getMerchantId() {
+            return merchantId;
+        }
+
+        public void setMerchantId(String merchantId) {
+            this.merchantId = merchantId;
+        }
     }
 
-    public int getAmount() {
-        return amount;
+    //DTO for list for payments
+    class PaymentListRequest {
+        private String merchantId;
+        public PaymentListRequest() {
+        }
+        public String getMerchantId() {
+            return merchantId;
+        }
+        public void setMerchantId(String merchantId) {
+            this.merchantId = merchantId;
+        }
     }
+}   
 
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
 
-    public String getCustomerId() {
-        return customerId;
-    }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
-    }
 
-    public String getMerchantId() {
-        return merchantId;
-    }
-
-    public void setMerchantId(String merchantId) {
-        this.merchantId = merchantId;
-    }
-
-    public void setStatus(int status){
-        this.status = status;
-    }
-}
-
-//DTO for list for payments
-class PaymentListRequest {
-    private String merchantId;
-    public PaymentListRequest() {
-    }
-    public String getMerchantId() {
-        return merchantId;
-    }
-    public void setMerchantId(String merchantId) {
-        this.merchantId = merchantId;
-    }
-}
