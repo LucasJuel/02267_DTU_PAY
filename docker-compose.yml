@@ -1,0 +1,22 @@
+services:
+  # Server setup
+  server:
+    build: ./Server/thebois-dtu-pay
+    container_name: dtu-pay-server
+    ports:
+      - "8181:8181"
+    networks:
+      - dtu-network
+
+  # Client setup
+  client:
+    build: ./Client/dtu-pay-client
+    container_name: dtu-pay-client
+    depends_on:
+      - server
+    networks:
+      - dtu-network
+
+networks:
+  dtu-network:
+    driver: bridge
