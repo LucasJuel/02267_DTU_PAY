@@ -1,11 +1,12 @@
 package com.client;
 
+import io.cucumber.java.en.When;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SimpleDTUPaySteps {
+public class StepDefinitions {
     private Customer customer;
     private Merchant merchant;
     private String customerId, merchantId;
