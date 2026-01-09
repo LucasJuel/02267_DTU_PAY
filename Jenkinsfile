@@ -15,7 +15,14 @@ pipeline {
         }
         stage('3. Run Maven Test Suite') {
             steps {
-                sh 'docker compose exec -T client mvn test'
+                script {
+                    try {
+                        sh 'docker compose exec -T client mvn test'
+                    } catch (Exception e) {
+                        sh 'docker compose logs --tail=50 server'
+                        error "Tests failed. Check server logs above."
+                    }
+                }
             }
         }
     }
