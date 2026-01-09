@@ -3,12 +3,13 @@ pipeline {
     stages {
         stage('Cleanup Environment') {
             steps {
-                // Force remove any old containers/networks associated with this project
+                // Wipe old containers so port 8080/8181 is free
                 sh 'docker compose down --remove-orphans || true'
             }
         }
         stage('Build Images') {
             steps {
+                // Build your lean Version 2 images
                 sh 'docker compose build'
             }
         }
@@ -16,22 +17,27 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker compose up -d'
+                        // 1. Start Quarkus Server
+                        sh 'docker compose up -d dtu-pay-server'
+
+                        // 2. Wait for Quarkus to boot (Essential for JVM mode)
                         echo "Waiting for Quarkus to boot..."
                         sh 'sleep 15'
 
-                        // Run tests in the live container
-                        sh 'docker compose exec -T client mvn test'
+                        // 3. Override the Version 2 Entrypoint to run tests
+                        // This starts the client container but runs 'mvn test' inside it
+                        sh 'docker compose run --rm client mvn test'
                     } finally {
+                        // 4. Always tear down to keep the server clean
                         sh 'docker compose down'
                     }
                 }
             }
         }
     }
-
     post {
         always {
+            // Jenkins will look for the XML reports created by 'mvn test'
             junit '**/target/surefire-reports/*.xml'
         }
     }
