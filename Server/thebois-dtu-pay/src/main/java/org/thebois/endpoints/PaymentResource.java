@@ -10,6 +10,20 @@ import jakarta.ws.rs.core.Response;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors; 
+
 @Path("/payment")
 public class PaymentResource {
 
@@ -21,25 +35,55 @@ public class PaymentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response pay(PaymentRequest paymentDetails) {
-        // Payment processing implementation
-        fileHandler.write(paymentDetails);
-        return "Payment processed";
+        System.out.println("Processing payment for merchant: " + paymentDetails);
+        try{
+            List<Map<String, Object>> existingPayments = fileHandler.read();
+    
+            // Payment processing implementation
+            String merchantId = paymentDetails.getMerchantId();
+            String customerId = paymentDetails.getCustomerId();
+            float amount = paymentDetails.getAmount();
+
+
+            Map<String, Object> payment = new HashMap<>();
+            payment.put("merchantId", merchantId);
+            payment.put("amount", amount);
+            payment.put("customerId", customerId);
+            existingPayments.add(payment);
+            fileHandler.write(existingPayments);
+            return Response.ok().build();
+        } catch(Exception e){
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to process payment: " + e.getMessage() + "\"}")
+                    .build();
+        }
+       
     }
 
     @GET
     @Path("/list")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listPayments(PaymentListRequest paymentListRequest) {
-        // List payments implementation
-        String payments = fileHandler.read();
-        //Json serialize payments
-        List<String> paymentArray = Arrays.asList(payments.split("\n"))
-            .stream()
-            .filter(s -> s.contains(paymentListRequest.getMerchantId()))
-            .collect(Collectors.toList());
-        return paymentArray.toString();
-    }
+    public Response listPayments(PaymentListRequest paymentListRequest){
+        try{
+            // List payments implementation
+            List<Map<String, Object>> payments = fileHandler.read();
+            List<Map<String,Object>> merchantPayments = payments.stream()
+                .filter(s -> paymentListRequest.getMerchantId().equals(s.get("merchantId")))
+                .collect(Collectors.toList());
+
+            return Response.ok()
+                    .entity(merchantPayments)
+                    .build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to process list of payments: " + e.getMessage() + "\"}")
+                    .build();
+        }
+
+    }   
 }
 
 
@@ -48,6 +92,7 @@ class PaymentRequest {
     private int amount;
     private String customerId;
     private String merchantId;
+    private int status;
 
     public PaymentRequest() {
     }
@@ -74,6 +119,10 @@ class PaymentRequest {
 
     public void setMerchantId(String merchantId) {
         this.merchantId = merchantId;
+    }
+
+    public void setStatus(int status){
+        this.status = status;
     }
 }
 
