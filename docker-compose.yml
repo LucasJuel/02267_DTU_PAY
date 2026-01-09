@@ -12,6 +12,8 @@ services:
   client:
     build: ./Client/dtu-pay-client
     container_name: dtu-pay-client
+    volumes:
+      - ./Client/dtu-pay-client/target/surefire-reports:/app/target/surefire-reports
     depends_on:
       - server
     networks:
