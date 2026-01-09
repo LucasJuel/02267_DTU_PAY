@@ -2,14 +2,16 @@ services:
   server:
     build: ./Server/thebois-dtu-pay
     container_name: dtu-pay-server
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD", "curl", "http://localhost:8080"]
+      interval: 1s
+      timeout: 1s
+      retries: 3
+      start_period: 3s
     networks:
       - dtu-network
 
