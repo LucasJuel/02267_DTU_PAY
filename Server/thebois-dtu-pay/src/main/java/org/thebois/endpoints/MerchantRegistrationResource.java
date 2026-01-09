@@ -24,13 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Path("/merchant/register")
+@Path("/merchant")
 public class MerchantRegistrationResource {
     
     private static final String MERCHANTS_FILE = "merchants.json";
     private FileHandler fileHandler = new FileHandler(MERCHANTS_FILE);
 
     @POST
+    @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerMerchant(MerchantRequest merchantRequest) {
@@ -71,6 +72,44 @@ public class MerchantRegistrationResource {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\": \"Failed to register merchant: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+    @GET
+    @Path("/{merchantId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMerchant(@jakarta.ws.rs.PathParam("merchantId") String merchantId) {
+        try {
+            // Read existing merchants
+            List<Map<String, Object>> merchants = fileHandler.read();
+            
+            // Find merchant
+            Map<String, Object> merchant = merchants.stream()
+                    .filter(c -> merchantId.equals(c.get("merchantId")))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (merchant == null) {
+                Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put("message", "merchant with id \"" + merchantId + "\" is unknown");
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(responseMap)
+                        .build();
+            }
+            
+            Map<String, Object> responseMap = new HashMap<>();
+        
+            responseMap.put("message", "\"" + merchantId + "\"");
+        
+            return Response.ok()
+                    .entity(responseMap)
+                    .build();
+                    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to retrieve customer: " + e.getMessage() + "\"}")
                     .build();
         }
     }

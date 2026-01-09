@@ -24,13 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Path("/customer/register")
+@Path("/customer")
 public class CustomerRegistrationResource {
     
     private static final String CUSTOMERS_FILE = "customers.json";
     private FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
 
     @POST
+    @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerCustomer(CustomerRequest customerRequest) {
@@ -74,6 +75,45 @@ public class CustomerRegistrationResource {
                     .build();
         }
     }
+
+    @GET
+    @Path("/{customerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCustomer(@jakarta.ws.rs.PathParam("customerId") String customerId) {
+        try {
+            // Read existing customers
+            List<Map<String, Object>> customers = fileHandler.read();
+            
+            // Find customer
+            Map<String, Object> customer = customers.stream()
+                    .filter(c -> customerId.equals(c.get("customerId")))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (customer == null) {
+                Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put("message", "customer with id \"" + customerId + "\" is unknown");
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(responseMap)
+                        .build();
+            }
+            
+            
+            Map<String, Object> responseMap = new HashMap<>();
+        
+            responseMap.put("message", "\"" + customerId + "\"");
+            return Response.ok()
+                    .entity(responseMap)
+                    .build();
+                    
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to retrieve customer: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
     
     // DTO class for customer registration request
     public static class CustomerRequest {

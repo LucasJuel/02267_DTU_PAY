@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 public class PaymentResource {
 
     FileHandler fileHandler = new FileHandler("payments.json");
+    FileHandler customerHandler = new FileHandler("customers.json");
+    FileHandler merchantHandler = new FileHandler("merchants.json");
     // Implementation of PaymentResource class
 
     @POST
@@ -40,13 +42,43 @@ public class PaymentResource {
         System.out.println("Processing payment for merchant: " + paymentDetails);
         try{
             List<Map<String, Object>> existingPayments = fileHandler.read();
-    
+            List<Map<String, Object>> existingCustomers = customerHandler.read();
+            List<Map<String, Object>> existingMerchants = merchantHandler.read();
+
             // Payment processing implementation
             String merchantId = paymentDetails.getMerchantId();
             String customerId = paymentDetails.getCustomerId();
-            float amount = paymentDetails.getAmount();
-            System.out.println("Payment details - Merchant ID: " + merchantId + ", Customer ID: " + customerId + ", Amount: " + amount);
+            if(merchantId == null || customerId == null){
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"Merchant ID and Customer ID must be provided.\"}")
+                    .build();
+            }
 
+            boolean customerExists = existingCustomers.stream()
+                .anyMatch(c -> customerId.equals(c.get("customerId")));
+            
+            boolean merchantExists = existingMerchants.stream()
+                .anyMatch(m -> merchantId.equals(m.get("merchantId")));    
+
+            if(!customerExists){
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"Customer " + customerId + " is not registered.\"}")
+                    .build();
+            }
+            if(!merchantExists){
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"Merchant " + merchantId + " is not registered.\"}")
+                    .build();
+            }
+
+            float amount = paymentDetails.getAmount();
+            if(amount <= 0){
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"Payment amount must be greater than zero.\"}")
+                    .build();
+            }
+
+            System.out.println("Payment details - Merchant ID: " + merchantId + ", Customer ID: " + customerId + ", Amount: " + amount);
 
             Map<String, Object> payment = new HashMap<>();
             payment.put("merchantId", merchantId);
@@ -67,15 +99,14 @@ public class PaymentResource {
     }
 
     @GET
-    @Path("/list")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/list/{merchantId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listPayments(PaymentListRequest paymentListRequest){
+    public Response listPayments(@jakarta.ws.rs.PathParam("merchantId") String merchantId){
         try{
             // List payments implementation
             List<Map<String, Object>> payments = fileHandler.read();
             List<Map<String,Object>> merchantPayments = payments.stream()
-                .filter(s -> paymentListRequest.getMerchantId().equals(s.get("merchantId")))
+                .filter(s -> merchantId.equals(s.get("merchantId")))
                 .collect(Collectors.toList());
 
             return Response.ok()
