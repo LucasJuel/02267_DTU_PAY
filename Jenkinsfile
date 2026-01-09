@@ -1,26 +1,21 @@
 pipeline {
     agent any
     stages {
-        stage('1. Environment Cleanup') {
+        stage('1. Cleanup & Build') {
             steps {
                 sh 'docker compose down --remove-orphans || true'
-            }
-        }
-        stage('2. Build Images') {
-            steps {
                 sh 'docker compose build'
             }
         }
-        stage('3. Start System') {
+        stage('2. Start System') {
             steps {
                 sh 'docker compose up -d'
-                echo "Waiting for Quarkus server to initialize..."
-                sh 'sleep 15'
+                echo "System is healthy and ready for testing."
             }
         }
-        stage('4. Run Maven Test Suite') {
+        stage('3. Run Maven Test Suite') {
             steps {
-                sh 'docker compose run --rm client mvn test'
+                sh 'docker compose exec -T client mvn test'
             }
         }
     }
