@@ -20,7 +20,7 @@ public class ApiCall {
     /**
      * Performs a GET request to the specified endpoint
      */
-    public String get(String endpoint) throws Exception {
+    public HttpResponse<String> get(String endpoint) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + endpoint))
                 .GET()
@@ -28,13 +28,13 @@ public class ApiCall {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return response;
     }
 
     /**
      * Performs a POST request to the specified endpoint with JSON body
      */
-    public String post(String endpoint, String jsonBody) throws Exception {
+    public HttpResponse<String> post(String endpoint, String jsonBody) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + endpoint))
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
@@ -42,13 +42,13 @@ public class ApiCall {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return response;
     }
 
     /**
      * Performs a PUT request to the specified endpoint with JSON body
      */
-    public String put(String endpoint, String jsonBody) throws Exception {
+    public HttpResponse<String> put(String endpoint, String jsonBody) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + endpoint))
                 .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
@@ -56,13 +56,13 @@ public class ApiCall {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return response;
     }
 
     /**
      * Performs a DELETE request to the specified endpoint
      */
-    public String delete(String endpoint) throws Exception {
+    public HttpResponse<String> delete(String endpoint) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + endpoint))
                 .DELETE()
@@ -70,7 +70,7 @@ public class ApiCall {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return response;
     }
 
     /**

@@ -4,68 +4,81 @@ import io.cucumber.java.en.When;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.And;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StepDefinitions {
     private Customer customer;
     private Merchant merchant;
+    private HashMap<String, Object> customerResponseObj, merchantResponseObj, paymentResponseObj;
     private String customerId, merchantId;
     private SimpleDtuPay dtupay = new SimpleDtuPay();
     private boolean successful = false;
+    private int statusCode;
 
     @Given("a customer with name {string}")
     public void aCustomerWithName(String name) {
         customer = new Customer(name);
-        System.out.println("Created customer with name: " + name);
+        assertTrue(customer != null);
     }
 
     @Given("the customer is registered with Simple DTU Pay")
     public void theCustomerIsRegisteredWithSimpleDTUPay() {
-        customerId = dtupay.register(customer);
-        System.out.println("Registered customer with ID: " + customerId);
+        customerResponseObj = dtupay.register(customer);
+        statusCode = (int) customerResponseObj.get("status");
+        assertTrue(statusCode == 200 || statusCode == 409, "Customer registration failed with status code: " + statusCode);
     }
 
     @Given("a merchant with name {string}")
     public void aMerchantWithName(String name) {
         merchant = new Merchant(name);
-        System.out.println("Created merchant with name: " + name);
+        assertTrue(merchant != null);
     }
 
     @Given("the merchant is registered with Simple DTU Pay")
     public void theMerchantIsRegisteredWithSimpleDTUPay() {
-        merchantId = dtupay.register(merchant);
-        System.out.println("Registered merchant with ID: " + merchantId);
+        merchantResponseObj = dtupay.register(merchant);
+        statusCode = (int) merchantResponseObj.get("status");
+        assertTrue(statusCode == 200 || statusCode == 409, "Merchant registration failed with status code: " + statusCode);
     }
 
     @When("the merchant initiates a payment for {int} kr by the customer")
     public void theMerchantInitiatesAPaymentForKrByTheCustomer(Integer amount) {
-        successful = dtupay.pay(amount,customerId,merchantId);
+        paymentResponseObj = dtupay.pay(amount,customerId,merchantId);
+        statusCode = (int) paymentResponseObj.get("status");
+        successful = (statusCode == 200);
         System.out.println("Payment initiated for " + amount + " kr by customer " + customerId + " to merchant " + merchantId);
     }
 
     @Then("the payment is successful")
     public void thePaymentIsSuccessful() {
-        assertTrue(successful);
+        assertTrue(successful, "Payment failed with status code " + statusCode);
     }
 
-    @Given("a customer named Susan, who is registered with Simple DTU Pay")
-    public void aCustomerNamedSusanWhoIsRegisteredWithSimpleDTUPay() {
-        customer = new Customer("Susan");
-        customerId = dtupay.register(customer);
-        System.out.println("Registered customer Susan with ID: " + customerId);
+    @Given("a customer with name {string}, who is registered with Simple DTU Pay")
+    public void aCustomerWithNameWhoIsRegisteredWithSimpleDTUPay(String name) {
+        customer = new Customer(name);
+        customerResponseObj = dtupay.register(customer);
+        statusCode = (int) customerResponseObj.get("status");
+        assertTrue(statusCode == 200 || statusCode == 409, "Customer registration failed with status code: " + statusCode);
+    }
+    
+
+    @And("a merchant with name {string}, who is registered with Simple DTU Pay")
+    public void aMerchantWithNameWhoIsRegisteredWithSimpleDTUPay(String name) {
+        merchant = new Merchant(name);
+        merchantResponseObj = dtupay.register(merchant);
+        statusCode = (int) merchantResponseObj.get("status");
+        assertTrue(statusCode == 200 || statusCode == 409, "Merchant registration failed with status code: " + statusCode);
     }
 
-    @And("a merchant named Daniel, who is registered with Simple DTU Pay")
-    public void aMerchantNamedDanielWhoIsRegisteredWithSimpleDTUPay() {
-        merchant = new Merchant("Daniel");
-        merchantId = dtupay.register(merchant);
-        System.out.println("Registered merchant Daniel with ID: " + merchantId);
-    }
 
     @Given("a successful payment of {string} kr from the customer to the merchant")
     public void aSuccessfulPaymentOfKrFromTheCustomerToTheMerchant(String amountStr) {
-        successful = dtupay.pay(amountStr, customerId, merchantId);
+        paymentResponseObj = dtupay.pay(amountStr, customerId, merchantId);
+        statusCode = (int) paymentResponseObj.get("status");
+        successful = (statusCode == 200);
         System.out.println("Successful payment of " + amountStr + " kr from customer " + customerId + " to merchant " + merchantId);
     }
 
@@ -73,20 +86,6 @@ public class StepDefinitions {
     public void theManagerAsksForAListOfPayments() {
         // Implementation for listing payments can be added here
         System.out.println("Manager requested list of payments.");
-    }
-
-    @Given("a customer with name {string}, who is registered with Simple DTU Pay")
-    public void aCustomerWithNameWhoIsRegisteredWithSimpleDTUPay(String name) {
-        customer = new Customer(name);
-        customerId = dtupay.register(customer);
-        System.out.println("Registered customer " + name + " with ID: " + customerId);
-    }
-
-    @Given("a merchant with name {string}, who is registered with Simple DTU Pay")
-    public void aMerchantWithNameWhoIsRegisteredWithSimpleDTUPay(String name) {
-        merchant = new Merchant(name);
-        merchantId = dtupay.register(merchant);
-        System.out.println("Registered merchant " + name + " with ID: " + merchantId);
     }
 
     @Then("the list contains a payments where customer {string} paid {string} kr to merchant {string}")
