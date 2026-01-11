@@ -19,16 +19,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Path("/customer")
 public class CustomerRegistrationResource {
     
     private static final String CUSTOMERS_FILE = "customers.json";
     private FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
+    private HashMap<String, String> userBankID = new HashMap<>();
 
     @POST
     @Path("/register")
@@ -36,7 +34,8 @@ public class CustomerRegistrationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerCustomer(CustomerRequest customerRequest) {
         try {
-            String customerId = customerRequest.getCustomerId();
+            String customerId = UUID.randomUUID().toString();
+            String bankAccountNumber = customerRequest.getBankAccountID();
             String customerName = customerRequest.getName();
             
             // Read existing customers
@@ -56,6 +55,7 @@ public class CustomerRegistrationResource {
             Map<String, Object> newCustomer = new HashMap<>();
             newCustomer.put("customerId", customerId);
             newCustomer.put("name", customerName);
+            newCustomer.put("bankAccountNumber", bankAccountNumber);
             newCustomer.put("registeredAt", LocalDateTime.now().toString());
             
             // Add to list
@@ -119,7 +119,8 @@ public class CustomerRegistrationResource {
     public static class CustomerRequest {
         private String customerId;
         private String name;
-        
+        private String bankAccountID;
+
         public CustomerRequest() {
         }
         
@@ -137,6 +138,14 @@ public class CustomerRegistrationResource {
         
         public void setName(String name) {
             this.name = name;
+        }
+
+        public void setBankAccountID(String bankAccountID) {
+            this.bankAccountID = bankAccountID;
+        }
+
+        public String getBankAccountID() {
+            return bankAccountID;
         }
     }
 }

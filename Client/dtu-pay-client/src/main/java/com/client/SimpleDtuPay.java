@@ -2,11 +2,12 @@ package com.client;
 
 import com.client.utils.ApiCall;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.HashMap;
+
+import dtu.ws.fastmoney.User;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
+
 import java.io.StringReader;
 
 public class SimpleDtuPay {
@@ -21,9 +22,9 @@ public class SimpleDtuPay {
     }
 
     public HashMap<String, Object> register(Customer user) {
-        String customerId = "customer-id-" + user.getName();
+        String customerId = "customer-id-" + user.getFirstName();
         try {
-            String jsonBody = String.format("{\"customerId\":\"%s\",\"name\":\"%s\"}", customerId, user.getName());
+            String jsonBody = String.format("{\"customerId\":\"%s\",\"name\":\"%s\"}", customerId, user.getFirstName());
             HttpResponse<String> response = apiCall.post("/customer/register", jsonBody);
             System.out.println("Registration response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
@@ -39,7 +40,15 @@ public class SimpleDtuPay {
             return responseMap;
         }
     }
-    
+
+    public HashMap<String, Object> registerUserFromBankAccount(User customer, String account) {
+        try {
+            String jsonBody = String.format("{\"firstName\":\"%s\",")
+        }
+
+    }
+
+
     public HashMap<String, Object> register(Merchant user) {
         try {
             String merchantId = "merchant-id-" + user.getName();
