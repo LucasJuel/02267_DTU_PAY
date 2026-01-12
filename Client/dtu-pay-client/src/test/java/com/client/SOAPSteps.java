@@ -56,21 +56,20 @@ public class SOAPSteps {
     @And("the customer is registered with Simple DTU Pay using their bank account")
     public void theCustomerIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
 
-        simpleDtuPay.registerUserFromBankAccount(customer, customerAccount);
-
+        simpleDtuPay.register(customer, customerAccount);
         assertEquals(customer.getFirstName(), bank.getAccount(customerAccount).getUser().getFirstName());
 
     }
 
     @And("a merchant with name {string}, last name {string}, and CPR {string}")
     public void aMerchantWithNameLastNameAndCPR(String name, String lastName, String cpr) {
-       merchant.setFirstName(name);
-       merchant.setLastName(lastName);
-       merchant.setCprNumber(cpr);
-       //CHECK
-       assertEquals(merchant.getFirstName(), name);
-       assertEquals(merchant.getLastName(), lastName);
-       assertEquals(merchant.getCprNumber(), cpr);
+        merchant.setFirstName(name);
+        merchant.setLastName(lastName);
+        merchant.setCprNumber(cpr);
+
+        assertEquals(merchant.getFirstName(), name);
+        assertEquals(merchant.getLastName(), lastName);
+        assertEquals(merchant.getCprNumber(), cpr);
 
     }
 
@@ -84,46 +83,51 @@ public class SOAPSteps {
         assert(Objects.equals(bank.getAccount(merchantAccount).getBalance(), balance));
     }
 
-        @And("the merchant is registered with Simple DTU Pay using their bank account")
-        public void theMerchantIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
-            simpleDtuPay.registerMerchantFromBankAccount(merchant, merchantAccount);
+    @And("the merchant is registered with Simple DTU Pay using their bank account")
+    public void theMerchantIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
+        simpleDtuPay.registerMerchantFromBankAccount(merchant, merchantAccount);
 
-            assertEquals(merchant.getFirstName(), bank.getAccount(merchantAccount).getUser().getFirstName());
+        assertEquals(merchant.getFirstName(), bank.getAccount(merchantAccount).getUser().getFirstName());
+    }
+
+    @When("the SOAP merchant initiates a payment for {int} kr by the customer")
+    public void theMerchantInitiatesAPaymentFor10KrByTheCustomer(int num){
+        simpleDtuPay.pay(new BigDecimal(num), customerAccount, merchantAccount, "TEST");
+    }
+
+    @Then("the SOAP payment is successful")
+    public Object theSOAPPaymentIsSuccessful() throws BankServiceException_Exception {
+        List<Transaction> transactions =  bank.getAccount(merchantAccount).getTransactions();
+        for (Transaction trans: transactions){
+            System.out.println(trans.getDescription());
+            if(Objects.equals(trans.getDescription(), "TEST")){
+                return true;
+            }
         }
-
-        @When("the SOAP merchant initiates a payment for 10 kr by the customer")
-        public void theMerchantInitiatesAPaymentFor10KrByTheCustomer() throws BankServiceException_Exception {
-            bank.transferMoneyFromTo(customerAccount,merchantAccount, new BigDecimal(10) , "TEST");
-        }
-
-         @Then("the SOAP payment is successful")
-         public Object theSOAPPaymentIsSuccessful() throws BankServiceException_Exception {
-             List<Transaction> transactions =  bank.getAccount(merchantAccount).getTransactions();
-             for (Transaction trans: transactions){
-                 System.out.println(trans.getDescription());
-                 if(Objects.equals(trans.getDescription(), "TEST")){
-                     return true;
-                 }
-             }
-             return fail();
-         }
+        return fail();
+    }
 
 
-         @And("the balance of the customer at the bank is {int} kr")
-         public void theBalanceOfTheCustomerAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
-            assertEquals(bank.getAccount(customerAccount).getBalance(), new BigDecimal(arg0));
+    @And("the balance of the customer at the bank is {int} kr")
+    public void theBalanceOfTheCustomerAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
+        assertEquals(bank.getAccount(customerAccount).getBalance(), new BigDecimal(arg0));
 
-         }
+    }
 
 
-           @And("the balance of the merchant at the bank is {int} kr")
-           public void theBalanceOfTheMerchantAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
-               assertEquals(bank.getAccount(merchantAccount).getBalance(), new BigDecimal(arg0));
-           }
+    @And("the balance of the merchant at the bank is {int} kr")
+    public void theBalanceOfTheMerchantAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
+        assertEquals(bank.getAccount(merchantAccount).getBalance(), new BigDecimal(arg0));
+    }
     @After
     public void deleteAccounts() throws BankServiceException_Exception {
         for (String account : accounts) {
             bank.retireAccount(apiKey, account);
         }
+    }
+
+    @Given("a customer with name {string}, last name {string}, and CPR {string}, who is registered with Simple DTU Pay")
+    public void aCustomerWithNameLastNameAndCPRWhoIsRegisteredWithSimpleDTUPay(String arg0, String arg1, String arg2) {
+
     }
 }

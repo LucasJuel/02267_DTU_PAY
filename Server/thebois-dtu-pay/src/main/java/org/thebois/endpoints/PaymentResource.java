@@ -84,6 +84,7 @@ public class PaymentResource {
             payment.put("merchantId", merchantId);
             payment.put("amount", amount);
             payment.put("customerId", customerId);
+
             existingPayments.add(payment);
             fileHandler.write(existingPayments);
             System.out.println("Payment recorded successfully: " + payment);
