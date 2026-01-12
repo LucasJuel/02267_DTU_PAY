@@ -43,7 +43,24 @@ public class SimpleDtuPay {
 
     public HashMap<String, Object> registerUserFromBankAccount(User customer, String account) {
         try {
-            String jsonBody = String.format("{\"firstName\":\"%s\",")
+            String jsonBody = String.format(
+                    "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
+                    customer.getFirstName(), customer.getLastName(), customer.getCprNumber(), account
+            );
+
+            HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
+            System.out.println("Registration response: " + response.body());
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("status", response.statusCode());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                responseMap.put("dtuPayID", response.body());
+            }
+            return responseMap;
+        } catch (Exception e) {
+            HashMap<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 500);
+            return errorMap;
         }
 
     }

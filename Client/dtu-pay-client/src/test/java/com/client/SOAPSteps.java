@@ -12,9 +12,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public class SOAPSteps {
 
-    private BankService bank;
+    private BankService bank = new BankService_Service().getBankServicePort();
 
     List<String> accounts = new ArrayList<>();
 
@@ -23,12 +25,12 @@ public class SOAPSteps {
     private SimpleDtuPay simpleDtuPay = new SimpleDtuPay();
 
     // State for Customer
-    private User customer;
+    private final User customer = new User();
     private String customerBankId;
     private String customerDtuPayId;
 
     // State for Merchant
-    private User merchant;
+    private User merchant = new User();
     private String merchantBankId;
     private String merchantDtuPayId;
 
@@ -39,6 +41,10 @@ public class SOAPSteps {
         customer.setFirstName(arg0);
         customer.setLastName(arg1);
         customer.setCprNumber(arg2);
+
+        assertEquals(arg0, customer.getFirstName());
+        assertEquals(arg1, customer.getLastName());
+        assertEquals(arg2, customer.getCprNumber());
     }
 
     @And("the customer is registered with the bank with an initial balance of {int} kr")
@@ -47,15 +53,20 @@ public class SOAPSteps {
         account = bank.createAccountWithBalance(apiKey, customer, new BigDecimal(arg0));
         accounts.add(account);
 
+        assert(bank.getAccount(account).getBalance().equals(arg0));
     }
 
     @And("the customer is registered with Simple DTU Pay using their bank account")
-    public void theCustomerIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() {
+    public void theCustomerIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
 
         simpleDtuPay.registerUserFromBankAccount(customer, account);
 
-    }
+        assertEquals(customer.getFirstName(), bank.getAccount(account).getUser().getFirstName());
 
+
+
+    }
+/*
     @And("a merchant with name {string}, last name {string}, and CPR {string}")
     public void aMerchantWithNameLastNameAndCPR(String arg0, String arg1, String arg2) {
         // Write code here that turns the phrase above into concrete actions
@@ -98,8 +109,8 @@ public class SOAPSteps {
         // Write code here that turns the phrase above into concrete actions
         throw new PendingException();
     }
-
-    @After("Delete created accounts")
+*/
+    @After
     public void deleteAccounts() throws BankServiceException_Exception {
         for (String account : accounts) {
             bank.retireAccount(apiKey, account);
