@@ -17,6 +17,7 @@ pipeline {
             steps {
                 script {
                     try {
+                        sh 'cd Client/dtu-pay-client'
                         sh 'mvn test'
                     } catch (Exception e) {
                         sh 'docker compose logs --tail=50 server'
