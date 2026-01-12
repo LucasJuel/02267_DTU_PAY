@@ -6,9 +6,10 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.And;
 import java.util.HashMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class StepDefinitions {
+public class PaymentSteps {
     private Customer customer;
     private Merchant merchant;
     private HashMap<String, Object> customerResponseObj, merchantResponseObj, paymentResponseObj;
@@ -20,22 +21,22 @@ public class StepDefinitions {
 
     @Given("a customer with name {string}")
     public void aCustomerWithName(String name) {
-        customer = new Customer(name);
-        assertTrue(customer != null);
+        customer = new Customer(name, "", "");
+        assertEquals(name, customer.getFirstName());
     }
 
     @Given("the customer is registered with Simple DTU Pay")
     public void theCustomerIsRegisteredWithSimpleDTUPay() {
         customerResponseObj = dtupay.register(customer);
         statusCode = (int) customerResponseObj.get("status");
-        customerId = "customer-id-" + customer.getName();
+        customerId = "customer-id-" + customer.getFirstName();
         assertTrue(statusCode == 200 || statusCode == 409, "Customer registration failed with status code: " + statusCode);
     }
 
     @Given("a merchant with name {string}")
     public void aMerchantWithName(String name) {
         merchant = new Merchant(name);
-        assertTrue(merchant != null);
+        assertEquals(name, merchant.getName());
     }
 
     @Given("the merchant is registered with Simple DTU Pay")
@@ -61,10 +62,10 @@ public class StepDefinitions {
 
     @Given("a customer with name {string}, who is registered with Simple DTU Pay")
     public void aCustomerWithNameWhoIsRegisteredWithSimpleDTUPay(String name) {
-        customer = new Customer(name);
+        customer = new Customer(name, "", "");
         customerResponseObj = dtupay.register(customer);
         statusCode = (int) customerResponseObj.get("status");
-        customerId = "customer-id-" + customer.getName();
+        customerId = "customer-id-" + customer.getFirstName();
         assertTrue(statusCode == 200 || statusCode == 409, "Customer registration failed with status code: " + statusCode);
     }
     
@@ -138,4 +139,5 @@ public class StepDefinitions {
         statusCode = (int) paymentResponseObj.get("status");
         successful = (statusCode == 200);
     }
+
 }

@@ -9,26 +9,15 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Path("/customer")
 public class CustomerRegistrationResource {
     
     private static final String CUSTOMERS_FILE = "customers.json";
-    private FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
+    private final FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
 
     @POST
     @Path("/register")
@@ -37,6 +26,7 @@ public class CustomerRegistrationResource {
     public Response registerCustomer(CustomerRequest customerRequest) {
         try {
             String customerId = customerRequest.getCustomerId();
+            String bankAccountNumber = customerRequest.getBankAccountID();
             String customerName = customerRequest.getName();
             
             // Read existing customers
@@ -56,6 +46,7 @@ public class CustomerRegistrationResource {
             Map<String, Object> newCustomer = new HashMap<>();
             newCustomer.put("customerId", customerId);
             newCustomer.put("name", customerName);
+            newCustomer.put("bankAccountNumber", bankAccountNumber);
             newCustomer.put("registeredAt", LocalDateTime.now().toString());
             
             // Add to list
@@ -119,16 +110,13 @@ public class CustomerRegistrationResource {
     public static class CustomerRequest {
         private String customerId;
         private String name;
-        
+        private String bankAccountID;
+
         public CustomerRequest() {
         }
         
         public String getCustomerId() {
             return customerId;
-        }
-        
-        public void setCustomerId(String customerId) {
-            this.customerId = customerId;
         }
         
         public String getName() {
@@ -137,6 +125,10 @@ public class CustomerRegistrationResource {
         
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getBankAccountID() {
+            return bankAccountID;
         }
     }
 }

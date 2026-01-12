@@ -2,11 +2,12 @@ package com.client;
 
 import com.client.utils.ApiCall;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.HashMap;
+
+import dtu.ws.fastmoney.User;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
+
 import java.io.StringReader;
 
 public class SimpleDtuPay {
@@ -21,9 +22,9 @@ public class SimpleDtuPay {
     }
 
     public HashMap<String, Object> register(Customer user) {
-        String customerId = "customer-id-" + user.getName();
+        String customerId = "customer-id-" + user.getFirstName();
         try {
-            String jsonBody = String.format("{\"customerId\":\"%s\",\"name\":\"%s\"}", customerId, user.getName());
+            String jsonBody = String.format("{\"customerId\":\"%s\",\"name\":\"%s\"}", customerId, user.getFirstName());
             HttpResponse<String> response = apiCall.post("/customer/register", jsonBody);
             System.out.println("Registration response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
@@ -39,7 +40,32 @@ public class SimpleDtuPay {
             return responseMap;
         }
     }
-    
+
+    public HashMap<String, Object> registerUserFromBankAccount(User customer, String account) {
+        try {
+            String jsonBody = String.format(
+                    "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
+                    customer.getFirstName(), customer.getLastName(), customer.getCprNumber(), account
+            );
+
+            HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
+            System.out.println("Registration response from bank: " + response.body());
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("status", response.statusCode());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                responseMap.put("dtuPayID", response.body());
+            }
+            return responseMap;
+        } catch (Exception e) {
+            HashMap<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 500);
+            return errorMap;
+        }
+
+    }
+
+
     public HashMap<String, Object> register(Merchant user) {
         try {
             String merchantId = "merchant-id-" + user.getName();
@@ -190,6 +216,29 @@ public class SimpleDtuPay {
             responseMap.put("status", 500);
             System.err.println("Get Merchant failed: " + e.getMessage());
             return responseMap;
+        }
+    }
+
+    public HashMap<String, Object> registerMerchantFromBankAccount(User merchant, String account) {
+        try {
+            String jsonBody = String.format(
+                    "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
+                    merchant.getFirstName(), merchant.getLastName(), merchant.getCprNumber(), account
+            );
+
+            HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
+            System.out.println("Registration response from bank: " + response.body());
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("status", response.statusCode());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                responseMap.put("dtuPayID", response.body());
+            }
+            return responseMap;
+        } catch (Exception e) {
+            HashMap<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 500);
+            return errorMap;
         }
     }
 }
