@@ -11,25 +11,20 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.thebois.DTO.CustomerDTO;
-import org.thebois.endpoints.services.CustomerService;
+import org.thebois.DTO.MerchantDTO;
+import org.thebois.endpoints.services.MerchantService;
 
 
-@Path("/customer")
-public class CustomerResource {
-    private final CustomerService customerService = new CustomerService();
+@Path("/merchant")
+public class MerchantResource {
+    private final MerchantService merchantService = new MerchantService();
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Response register(CustomerDTO request) {
-        System.out.println("Received registration request for customer: " + request.getFirstName() + " " + request.getLastName() + ", CPR: " + request.getCpr() + ", Bank Account: " + request.getBankAccountId());
+    public Response register(MerchantDTO request) {
+        System.out.println("Received registration request for Merchant: " + request.getFirstName() + " " + request.getLastName() + ", CPR: " + request.getCpr() + ", Bank Account: " + request.getBankAccountId());
         if (request == null || request.getFirstName() == null || request.getLastName() == null
                 || request.getCpr() == null || request.getBankAccountId() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -37,7 +32,7 @@ public class CustomerResource {
                     .build();
         }
         try {
-            return customerService.register(request);
+            return merchantService.register(request);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")
@@ -46,17 +41,17 @@ public class CustomerResource {
     }
 
     @GET
-    @Path("/{customerId}")
+    @Path("/{merchantId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCustomer(@jakarta.ws.rs.PathParam("customerId") String customerId) {
-        System.out.println("Received request to get customer with ID: " + customerId);
-        if (customerId == null || customerId.isEmpty()) {
+    public Response getMerchant(@jakarta.ws.rs.PathParam("merchantId") String merchantId) {
+        System.out.println("Received request to get merchant with ID: " + merchantId);
+        if (merchantId == null || merchantId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"customerId is required.\"}")
+                    .entity("{\"error\": \"merchantId is required.\"}")
                     .build();
         }
         try {
-            return customerService.getCustomer(customerId);
+            return merchantService.getMerchant(merchantId);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")

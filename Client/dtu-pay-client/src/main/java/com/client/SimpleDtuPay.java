@@ -24,14 +24,14 @@ public class SimpleDtuPay {
     }
 
 
-    public void register(User customer, String account) {
+    public void registerCustomer(User customer, String account) {
         try {
             String jsonBody = String.format(
                     "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
                     customer.getFirstName(), customer.getLastName(), customer.getCprNumber(), account
             );
 
-            HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
+            HttpResponse<String> response = apiCall.post("/customer", jsonBody);
             System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
@@ -46,10 +46,35 @@ public class SimpleDtuPay {
 
     }
 
-    public HashMap<String, Object> pay(BigDecimal amount, String customerId, String merchantId, String description) {
+        public void registerMerchant(User merchant, String account) {
+        try {
+            String jsonBody = String.format(
+                    "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
+                    merchant.getFirstName(), merchant.getLastName(), merchant.getCprNumber(), account
+            );
+
+            HttpResponse<String> response = apiCall.post("/merchant", jsonBody);
+            System.out.println("Registration response from bank: " + response.body());
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("status", response.statusCode());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                responseMap.put("dtuPayID", response.body());
+            }
+        } catch (Exception e) {
+            HashMap<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 500);
+        }
+
+    }
+
+    public HashMap<String, Object> registerPayment(float amount, String customerId, String merchantId, String description) {
         try {
             HashMap<String, Object> customer = getCustomer(customerId);
             HashMap<String, Object> merchant = getMerchant(merchantId);
+
+            System.out.println("Customer fetch status: " + customer.get("status"));
+            System.out.println("Merchant fetch status: " + merchant.get("status"));
 
             int statusCode = (int) customer.get("status");
             int merchantStatusCode = (int) merchant.get("status");
@@ -66,9 +91,9 @@ public class SimpleDtuPay {
                 responseMap.put("message", merchant.get("merchant"));
                 return responseMap;
             }
-            String jsonBody = String.format(java.util.Locale.US, "{\"amount\":%.2f,\"customerId\":\"%s\",\"merchantId\":\"%s\"}", amount, customerId, merchantId);
+            String jsonBody = String.format(java.util.Locale.US, "{\"customerAccountId\":\"%s\",\"merchantAccountId\":\"%s\",\"amount\":%.2f,\"message\":\"%s\"}", customerId, merchantId, amount, description);
             System.out.println("Payment request body: " + jsonBody);
-            HttpResponse<String> response = apiCall.post("/payment/pay", jsonBody);
+            HttpResponse<String> response = apiCall.post("/payment", jsonBody);
             
             System.out.println("Payment response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
@@ -109,10 +134,17 @@ public class SimpleDtuPay {
             System.out.println("Get Customer response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
+            
             JsonObject jsonObject = Json.createReader(new StringReader(response.body())).readObject();
-            String message = jsonObject.getString("message");
-            responseMap.put("customer", message);
-           
+            
+            // Check if response has "message" field (error case) or "customerId" field (success case)
+            if (jsonObject.containsKey("message")) {
+                responseMap.put("customer", jsonObject.getString("message"));
+            } else if (jsonObject.containsKey("customerId")) {
+                // Success - customer found, return the customerId
+                responseMap.put("customer", jsonObject.getString("customerId"));
+            }
+        
             return responseMap;
         } catch (Exception e) {
             HashMap<String, Object> responseMap = new HashMap<>();
@@ -121,16 +153,23 @@ public class SimpleDtuPay {
             return responseMap;
         }
     }
-    private HashMap<String, Object> getMerchant(String merchantId) {
+    private HashMap<String, Object> getMerchant(String merchantId) {       
         try {
             HttpResponse<String> response = apiCall.get("/merchant/" + merchantId);
             System.out.println("Get Merchant response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
+            
             JsonObject jsonObject = Json.createReader(new StringReader(response.body())).readObject();
-            String message = jsonObject.getString("message");
-            responseMap.put("merchant", message);
-           
+            
+            // Check if response has "message" field (error case) or "merchantId" field (success case)
+            if (jsonObject.containsKey("message")) {
+                responseMap.put("merchant", jsonObject.getString("message"));
+            } else if (jsonObject.containsKey("merchantId")) {
+                // Success - merchant found
+                responseMap.put("merchant", jsonObject.getString("merchantId"));
+            }
+        
             return responseMap;
         } catch (Exception e) {
             HashMap<String, Object> responseMap = new HashMap<>();

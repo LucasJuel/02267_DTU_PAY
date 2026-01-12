@@ -1,7 +1,7 @@
 package org.thebois.endpoints.services;
 
 import jakarta.ws.rs.core.Response;
-import org.thebois.DTO.CustomerDTO;
+import org.thebois.DTO.MerchantDTO;
 import org.thebois.utils.FileHandler;
 
 import dtu.ws.fastmoney.Account;
@@ -14,16 +14,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class CustomerService {
+public class MerchantService {
     
     private final BankService bank = new BankService_Service().getBankServicePort();
 
 
-    public CustomerService() {
+    public MerchantService() {
 
     }
 
-    public Response register(CustomerDTO request) {
+    public Response register(MerchantDTO request) {
         try {
             Account account = bank.getAccount(request.getBankAccountId());
             if (account == null || account.getUser() == null) {
@@ -39,7 +39,7 @@ public class CustomerService {
                     || !request.getFirstName().equals(firstName)
                     || !request.getLastName().equals(lastName)) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"error\": \"Bank account details do not match provided customer data.\"}")
+                        .entity("{\"error\": \"Bank account details do not match provided merchant data.\"}")
                         .build();
             }
 
@@ -52,30 +52,33 @@ public class CustomerService {
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Failed to register customer: " + e.getMessage() + "\"}")
+                    .entity("{\"error\": \"Failed to register merchant: " + e.getMessage() + "\"}")
                     .build();
         }
 
     }
 
-    public Response getCustomer(String customerId) throws BankServiceException_Exception {
+    public Response getMerchant(String merchantId) throws BankServiceException_Exception {
         
-        Account customer = bank.getAccount(customerId);
-        if (customer == null) {
+        try {
+            Account merchant = bank.getAccount(merchantId);
+            
+            Map<String, Object> merchantMap = new HashMap<>();
+            merchantMap.put("merchantId", merchant.getId());
+            merchantMap.put("firstName", merchant.getUser().getFirstName());
+            merchantMap.put("lastName", merchant.getUser().getLastName());
+            merchantMap.put("cpr", merchant.getUser().getCprNumber());
+            return Response.status(Response.Status.OK)
+                .entity(merchantMap)
+                .build();
+                
+        } catch (BankServiceException_Exception e) {
+            // Account not found in bank
             Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("message", "customer with id \"" + customerId + "\" is unknown");
+            responseMap.put("message", "merchant with id " + merchantId + " is unknown");
             return Response.status(Response.Status.NOT_FOUND)
                 .entity(responseMap)
                 .build();
         }
-
-        Map<String, Object> customerMap = new HashMap<>();
-        customerMap.put("customerId", customer.getId());
-        customerMap.put("firstName", customer.getUser().getFirstName());
-        customerMap.put("lastName", customer.getUser().getLastName());
-        customerMap.put("cpr", customer.getUser().getCprNumber());
-        return Response.status(Response.Status.OK)
-            .entity(customerMap)
-            .build();
     }
 }
