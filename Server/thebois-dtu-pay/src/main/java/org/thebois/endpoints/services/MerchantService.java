@@ -2,7 +2,6 @@ package org.thebois.endpoints.services;
 
 import jakarta.ws.rs.core.Response;
 import org.thebois.DTO.MerchantDTO;
-import org.thebois.utils.FileHandler;
 
 import dtu.ws.fastmoney.Account;
 import dtu.ws.fastmoney.BankService;
@@ -10,9 +9,8 @@ import dtu.ws.fastmoney.BankServiceException_Exception;
 import dtu.ws.fastmoney.BankService_Service;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+
 
 public class MerchantService {
     

@@ -95,9 +95,6 @@ public class SOAPSteps {
 
     @When("the SOAP merchant initiates a payment for {int} kr by the customer")
     public void theMerchantInitiatesAPaymentFor10KrByTheCustomer(int num){
-        System.out.println("Customer account: '" + customerAccount + "' (length: " + customerAccount.length() + ")");
-        System.out.println("Merchant account: '" + merchantAccount + "' (length: " + merchantAccount.length() + ")");
-        // Convert the int to a float for the payment amount
         float amount = (float) num;
         simpleDtuPay.registerPayment(amount, customerAccount, merchantAccount, "TEST");
     }

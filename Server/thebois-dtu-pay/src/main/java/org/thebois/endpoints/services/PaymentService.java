@@ -2,7 +2,6 @@ package org.thebois.endpoints.services;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.thebois.DTO.PaymentDTO;
@@ -11,7 +10,7 @@ import dtu.ws.fastmoney.BankService;
 import dtu.ws.fastmoney.BankService_Service;
 import jakarta.ws.rs.core.Response;
 import dtu.ws.fastmoney.Account;
-import dtu.ws.fastmoney.BankServiceException_Exception;
+
 
 public class PaymentService {
     private final BankService bank = new BankService_Service().getBankServicePort();
