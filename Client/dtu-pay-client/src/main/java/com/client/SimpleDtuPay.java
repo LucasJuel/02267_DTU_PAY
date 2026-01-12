@@ -49,7 +49,7 @@ public class SimpleDtuPay {
             );
 
             HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
-            System.out.println("Registration response: " + response.body());
+            System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
 
@@ -216,6 +216,29 @@ public class SimpleDtuPay {
             responseMap.put("status", 500);
             System.err.println("Get Merchant failed: " + e.getMessage());
             return responseMap;
+        }
+    }
+
+    public HashMap<String, Object> registerMerchantFromBankAccount(User merchant, String account) {
+        try {
+            String jsonBody = String.format(
+                    "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
+                    merchant.getFirstName(), merchant.getLastName(), merchant.getCprNumber(), account
+            );
+
+            HttpResponse<String> response = apiCall.post("/bankCustomer/register", jsonBody);
+            System.out.println("Registration response from bank: " + response.body());
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("status", response.statusCode());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                responseMap.put("dtuPayID", response.body());
+            }
+            return responseMap;
+        } catch (Exception e) {
+            HashMap<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 500);
+            return errorMap;
         }
     }
 }
