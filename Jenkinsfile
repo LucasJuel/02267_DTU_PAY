@@ -17,8 +17,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'cd Client/dtu-pay-client'
-                        sh 'mvn test'
+                        sh 'cd Client/dtu-pay-client && mvn test'
                     } catch (Exception e) {
                         sh 'docker compose logs --tail=50 server'
                         error "Tests failed. Check server logs above."
