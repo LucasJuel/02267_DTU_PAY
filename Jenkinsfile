@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'mvn test'
+                        sh 'docker compose exec -T client mvn test'
                     } catch (Exception e) {
                         sh 'docker compose logs --tail=50 server'
                         error "Tests failed. Check server logs above."

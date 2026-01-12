@@ -9,15 +9,24 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Path("/customer")
 public class CustomerRegistrationResource {
-    
+
     private static final String CUSTOMERS_FILE = "customers.json";
-    private final FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
+    private FileHandler fileHandler = new FileHandler(CUSTOMERS_FILE);
+    private HashMap<String, String> userBankID = new HashMap<>();
 
     @POST
     @Path("/register")
@@ -28,37 +37,37 @@ public class CustomerRegistrationResource {
             String customerId = customerRequest.getCustomerId();
             String bankAccountNumber = customerRequest.getBankAccountID();
             String customerName = customerRequest.getName();
-            
+
             // Read existing customers
             List<Map<String, Object>> customers = fileHandler.read();
-            
+
             // Check if customer already exists
             boolean exists = customers.stream()
                     .anyMatch(c -> customerId.equals(c.get("customerId")));
-            
+
             if (exists) {
                 return Response.status(Response.Status.CONFLICT)
                         .entity("{\"error\": \"Customer " + customerId + " is already registered.\"}")
                         .build();
             }
-            
+
             // Create new customer entry
             Map<String, Object> newCustomer = new HashMap<>();
             newCustomer.put("customerId", customerId);
             newCustomer.put("name", customerName);
             newCustomer.put("bankAccountNumber", bankAccountNumber);
             newCustomer.put("registeredAt", LocalDateTime.now().toString());
-            
+
             // Add to list
             customers.add(newCustomer);
-            
+
             // Save to file
             fileHandler.write(customers);
-            
+
             return Response.ok()
                     .entity("{\"message\": \"Customer " + customerId + " registered successfully.\", \"customerId\": \"" + customerId + "\"}")
                     .build();
-                    
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -74,13 +83,13 @@ public class CustomerRegistrationResource {
         try {
             // Read existing customers
             List<Map<String, Object>> customers = fileHandler.read();
-            
+
             // Find customer
             Map<String, Object> customer = customers.stream()
                     .filter(c -> customerId.equals(c.get("customerId")))
                     .findFirst()
                     .orElse(null);
-            
+
             if (customer == null) {
                 Map<String, Object> responseMap = new HashMap<>();
                 responseMap.put("message", "customer with id \"" + customerId + "\" is unknown");
@@ -88,15 +97,15 @@ public class CustomerRegistrationResource {
                         .entity(responseMap)
                         .build();
             }
-            
-            
+
+
             Map<String, Object> responseMap = new HashMap<>();
-        
+
             responseMap.put("message", "\"" + customerId + "\"");
             return Response.ok()
                     .entity(responseMap)
                     .build();
-                    
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -105,7 +114,7 @@ public class CustomerRegistrationResource {
         }
     }
 
-    
+
     // DTO class for customer registration request
     public static class CustomerRequest {
         private String customerId;
@@ -114,17 +123,25 @@ public class CustomerRegistrationResource {
 
         public CustomerRequest() {
         }
-        
+
         public String getCustomerId() {
             return customerId;
         }
-        
+
+        public void setCustomerId(String customerId) {
+            this.customerId = customerId;
+        }
+
         public String getName() {
             return name;
         }
-        
+
         public void setName(String name) {
             this.name = name;
+        }
+
+        public void setBankAccountID(String bankAccountID) {
+            this.bankAccountID = bankAccountID;
         }
 
         public String getBankAccountID() {
