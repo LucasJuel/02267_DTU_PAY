@@ -93,25 +93,6 @@ public class SOAPSteps {
         assertEquals(merchant.getFirstName(), bank.getAccount(merchantAccount).getUser().getFirstName());
     }
 
-    @When("the SOAP merchant initiates a payment for {int} kr by the customer")
-    public void theMerchantInitiatesAPaymentFor10KrByTheCustomer(int num) {
-        float amount = (float) num;
-
-        simpleDtuPay.registerPayment(amount, customerAccount, merchantAccount, "TEST");
-    }
-
-    @Then("the SOAP payment is successful")
-    public Object theSOAPPaymentIsSuccessful() throws BankServiceException_Exception {
-        List<Transaction> transactions = bank.getAccount(merchantAccount).getTransactions();
-        for (Transaction trans : transactions) {
-            System.out.println(trans.getDescription());
-            if (Objects.equals(trans.getDescription(), "TEST")) {
-                return true;
-            }
-        }
-        return fail();
-    }
-
 
     @And("the balance of the customer at the bank is {int} kr")
     public void theBalanceOfTheCustomerAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
@@ -132,4 +113,35 @@ public class SOAPSteps {
         }
     }
 
+    @When("the SOAP merchant initiates a payment for {int} kr by the customer with the description {string}")
+    public void theSOAPMerchantInitiatesAPaymentForKrByTheCustomerWithTheDescription(int amount, String desc) {
+        float amountFloat = (float) amount;
+        java.util.HashMap<String, Object> lastPaymentResponse = simpleDtuPay.registerPayment(amountFloat, customerAccount, merchantAccount, desc);
+        assertEquals(200, lastPaymentResponse.get("status"));
+    }
+
+    @Then("there does not exists a SOAP payment with the description {string}")
+    public Object thereDoesNotExistsASAOPPaymentWithTheDescription(String arg0) throws BankServiceException_Exception {
+
+        List<Transaction> transactions = bank.getAccount(merchantAccount).getTransactions();
+        for (Transaction trans : transactions) {
+            System.out.println(trans.getDescription());
+            if (Objects.equals(trans.getDescription(), arg0)) {
+                return fail();
+            }
+        }
+        return null;
+    }
+
+    @Then("there exists a SOAP payment with the description {string}")
+    public Object thereExistsASAOPPaymentWithTheDescription(String arg0) throws BankServiceException_Exception {
+        List<Transaction> transactions = bank.getAccount(merchantAccount).getTransactions();
+        for (Transaction trans : transactions) {
+            System.out.println(trans.getDescription());
+            if (Objects.equals(trans.getDescription(), arg0)) {
+                return null;
+            }
+        }
+        return fail();
+    }
 }
