@@ -2,7 +2,6 @@ package com.client;
 
 import com.client.utils.ApiCall;
 
-import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 
@@ -25,6 +24,10 @@ public class SimpleDtuPay {
 
 
     public void registerCustomer(User customer, String account) {
+        registerCustomerWithResponse(customer, account);
+    }
+
+    public HashMap<String, Object> registerCustomerWithResponse(User customer, String account) {
         try {
             String jsonBody = String.format(
                     "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
@@ -35,18 +38,25 @@ public class SimpleDtuPay {
             System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
+            responseMap.put("body", response.body());
 
             if (response.statusCode() == 200 || response.statusCode() == 201) {
                 responseMap.put("dtuPayID", response.body());
             }
+            return responseMap;
         } catch (Exception e) {
             HashMap<String, Object> errorMap = new HashMap<>();
             errorMap.put("status", 500);
+            return errorMap;
         }
 
     }
 
         public void registerMerchant(User merchant, String account) {
+        registerMerchantWithResponse(merchant, account);
+    }
+
+    public HashMap<String, Object> registerMerchantWithResponse(User merchant, String account) {
         try {
             String jsonBody = String.format(
                     "{\"firstName\":\"%s\", \"lastName\":\"%s\", \"cpr\":\"%s\", \"bankAccountId\":\"%s\"}",
@@ -57,13 +67,16 @@ public class SimpleDtuPay {
             System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
+            responseMap.put("body", response.body());
 
             if (response.statusCode() == 200 || response.statusCode() == 201) {
                 responseMap.put("dtuPayID", response.body());
             }
+            return responseMap;
         } catch (Exception e) {
             HashMap<String, Object> errorMap = new HashMap<>();
             errorMap.put("status", 500);
+            return errorMap;
         }
 
     }
@@ -106,24 +119,6 @@ public class SimpleDtuPay {
             System.err.println("Payment failed: " + e.getMessage());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", 500);
-            return responseMap;
-        }
-    }
-
-    public HashMap<String, Object> listPayments(String merchantId) {
-        try {
-            HttpResponse<String> response = apiCall.get("/payment/list/" + merchantId);
-            System.out.println("List Payments response: " + response.body());
-            HashMap<String, Object> responseMap = new HashMap<>();
-            if(response.statusCode() == 200) {
-                responseMap.put("payments", response.body());
-            }
-            responseMap.put("status", response.statusCode());
-            return responseMap;
-        } catch (Exception e) {
-            HashMap<String, Object> responseMap = new HashMap<>();
-            responseMap.put("status", 500);
-            System.err.println("List Payments failed: " + e.getMessage());
             return responseMap;
         }
     }
