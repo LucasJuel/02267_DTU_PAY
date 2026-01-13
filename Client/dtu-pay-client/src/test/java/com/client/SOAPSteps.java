@@ -34,7 +34,7 @@ public class SOAPSteps {
     private String merchantAccount;
 
     @Given("a customer with name {string}, last name {string}, and CPR {string}")
-    public void aCustomerWithNameLastNameAndCPR(String arg0, String arg1, String arg2)  {
+    public void aCustomerWithNameLastNameAndCPR(String arg0, String arg1, String arg2) {
         customer.setFirstName(arg0);
         customer.setLastName(arg1);
         customer.setCprNumber(arg2);
@@ -51,7 +51,7 @@ public class SOAPSteps {
         System.out.println("Created customer bank account: " + customerAccount);
         accounts.add(customerAccount);
 
-        assert(bank.getAccount(customerAccount).getBalance().equals(new BigDecimal(arg0)));
+        assert (bank.getAccount(customerAccount).getBalance().equals(new BigDecimal(arg0)));
     }
 
     @And("the customer is registered with Simple DTU Pay using their bank account")
@@ -83,7 +83,7 @@ public class SOAPSteps {
 
         accounts.add(merchantAccount);
 
-        assert(Objects.equals(bank.getAccount(merchantAccount).getBalance(), balance));
+        assert (Objects.equals(bank.getAccount(merchantAccount).getBalance(), balance));
     }
 
     @And("the merchant is registered with Simple DTU Pay using their bank account")
@@ -94,17 +94,18 @@ public class SOAPSteps {
     }
 
     @When("the SOAP merchant initiates a payment for {int} kr by the customer")
-    public void theMerchantInitiatesAPaymentFor10KrByTheCustomer(int num){
+    public void theMerchantInitiatesAPaymentFor10KrByTheCustomer(int num) {
         float amount = (float) num;
+
         simpleDtuPay.registerPayment(amount, customerAccount, merchantAccount, "TEST");
     }
- 
+
     @Then("the SOAP payment is successful")
     public Object theSOAPPaymentIsSuccessful() throws BankServiceException_Exception {
-        List<Transaction> transactions =  bank.getAccount(merchantAccount).getTransactions();
-        for (Transaction trans: transactions){
+        List<Transaction> transactions = bank.getAccount(merchantAccount).getTransactions();
+        for (Transaction trans : transactions) {
             System.out.println(trans.getDescription());
-            if(Objects.equals(trans.getDescription(), "TEST")){
+            if (Objects.equals(trans.getDescription(), "TEST")) {
                 return true;
             }
         }
@@ -123,12 +124,6 @@ public class SOAPSteps {
     public void theBalanceOfTheMerchantAtTheBankIsKr(int arg0) throws BankServiceException_Exception {
         assertEquals(bank.getAccount(merchantAccount).getBalance(), new BigDecimal(arg0));
     }
-/* 
-    @Given("a customer with name {string}, last name {string}, and CPR {string}, who is registered with Simple DTU Pay")
-    public void aCustomerWithNameLastNameAndCPRWhoIsRegisteredWithSimpleDTUPay(String arg0, String arg1, String arg2) {
-
-    }
-    */
 
     @After
     public void deleteAccounts() throws BankServiceException_Exception {

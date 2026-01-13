@@ -13,28 +13,20 @@ import org.thebois.endpoints.services.CustomerService;
 
 
 @Path("/customer")
-public class CustomerResource {
+public class CustomerResource extends AbstractResource{
     private final CustomerService customerService = new CustomerService();
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-
     public Response register(CustomerDTO request) {
-        System.out.println("Received registration request for customer: " + request.getFirstName() + " " + request.getLastName() + ", CPR: " + request.getCpr() + ", Bank Account: " + request.getBankAccountId());
-        if (request == null || request.getFirstName() == null || request.getLastName() == null
+        if (request.getFirstName() == null || request.getLastName() == null
                 || request.getCpr() == null || request.getBankAccountId() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"firstName, lastName, cpr, and bankAccountId are required.\"}")
                     .build();
         }
-        try {
-            return customerService.register(request);
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")
-                    .build();
-        }
+        return handleRegister(request, () -> customerService.register(request));
     }
 
     @GET
