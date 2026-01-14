@@ -2,6 +2,7 @@ package org.thebois.endpoints.services;
 
 import jakarta.ws.rs.core.Response;
 import org.thebois.DTO.MerchantDTO;
+import org.thebois.utils.StorageHandler;
 
 import dtu.ws.fastmoney.Account;
 import dtu.ws.fastmoney.BankService;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class MerchantService {
     
     private final BankService bank = new BankService_Service().getBankServicePort();
+    private final StorageHandler storageHandler = StorageHandler.getInstance();
 
 
     public MerchantService() {
@@ -41,9 +43,20 @@ public class MerchantService {
                         .build();
             }
 
-            return Response.status(Response.Status.CREATED)
-                    .entity(account.getId())
-                    .build();
+
+            String serverUUID = java.util.UUID.randomUUID().toString();
+
+            storageHandler.storeMerchant(serverUUID, account);
+
+            if (storageHandler.getMerchant(serverUUID) == null) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\": \"Failed to store customer data.\"}")
+                        .build();
+            } else {
+                return Response.status(Response.Status.CREATED)
+                        .entity(serverUUID)
+                        .build();
+            }
         } catch (BankServiceException_Exception e) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"Bank account not found: " + e.getMessage() + "\"}")
@@ -59,7 +72,10 @@ public class MerchantService {
     public Response getMerchant(String merchantId) throws BankServiceException_Exception {
         
         try {
-            Account merchant = bank.getAccount(merchantId);
+            Account merchant = storageHandler.getMerchant(merchantId);
+            if (merchant == null) {
+                throw new BankServiceException_Exception("Merchant not found in storage", new dtu.ws.fastmoney.BankServiceException());
+            }
             
             Map<String, Object> merchantMap = new HashMap<>();
             merchantMap.put("merchantId", merchant.getId());

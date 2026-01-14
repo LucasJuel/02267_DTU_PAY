@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.thebois.DTO.PaymentDTO;
+import org.thebois.utils.StorageHandler;
 
 import dtu.ws.fastmoney.BankService;
 import dtu.ws.fastmoney.BankService_Service;
@@ -12,38 +13,27 @@ import jakarta.ws.rs.core.Response;
 import dtu.ws.fastmoney.Account;
 
 
+
 public class PaymentService {
     private final BankService bank = new BankService_Service().getBankServicePort();
+    private final StorageHandler storageHandler = StorageHandler.getInstance();
     public Response register(PaymentDTO request) {
-        
-        
-
         try{
-
-
             // Payment processing implementation
-            String merchantId = request.getMerchantAccountId();
-            String customerId = request.getCustomerAccountId();
+            String merchantSimpleId = request.getMerchantAccountId();
+            String customerSimpleId = request.getCustomerAccountId();
 
+            Account merchantAccountStored = storageHandler.getMerchant(merchantSimpleId);
+            Account customerAccountStored = storageHandler.getCustomer(customerSimpleId);
 
-
-            if(merchantId == null || customerId == null){
+            if(customerAccountStored == null){
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"Merchant ID and Customer ID must be provided.\"}")
+                    .entity("{\"error\": \"Customer " + customerSimpleId + " is not registered in simple DTU pay.\"}")
                     .build();
             }
-
-            Account merchantAccount = bank.getAccount(merchantId);
-            Account customerAccount = bank.getAccount(customerId);  
-
-            if(customerAccount == null){
+            if(merchantAccountStored == null){
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"Customer " + customerId + " is not registered.\"}")
-                    .build();
-            }
-            if(merchantAccount == null){
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"Merchant " + merchantId + " is not registered.\"}")
+                    .entity("{\"error\": \"Merchant " + merchantSimpleId + " is not registered in simple DTU pay.\"}")
                     .build();
             }
 
@@ -58,21 +48,21 @@ public class PaymentService {
             String message = request.getMessage();
 
             if(message == null){
-                message = "Payment from " + customerId + " to " + merchantId;
+                message = "Payment from " + customerAccountStored.getId() + " to " + merchantAccountStored.getId();
             }
 
-            System.out.println("Payment details - Merchant ID: " + merchantId + ", Customer ID: " + customerId + ", Amount: " + amount);
+            System.out.println("Payment details - Merchant ID: " + merchantAccountStored.getId() + ", Customer ID: " + customerAccountStored.getId() + ", Amount: " + amount);
 
             Map<String, Object> payment = new HashMap<>();
 
 
-            bank.transferMoneyFromTo(customerId, merchantId, amount , message);
+            bank.transferMoneyFromTo(customerAccountStored.getId(), merchantAccountStored.getId(), amount , message);
             System.out.println("Payment recorded successfully: " + payment);
 
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Payment registered successfully");
-            responseBody.put("merchantId", merchantId);
-            responseBody.put("customerId", customerId);
+            responseBody.put("merchantId", merchantAccountStored.getId());
+            responseBody.put("customerId", customerAccountStored.getId());
             responseBody.put("amount", amount);
         
         

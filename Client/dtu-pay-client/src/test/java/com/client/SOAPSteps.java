@@ -62,6 +62,7 @@ public class SOAPSteps {
     public void theCustomerIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
 
         lastCustomerRegistrationResponse = simpleDtuPay.registerCustomerWithResponse(customer, customerAccount);
+        System.out.println("Registered customer this is the response: " + lastCustomerRegistrationResponse);
         assertNotNull(lastCustomerRegistrationResponse);
         assertTrue((int) lastCustomerRegistrationResponse.get("status") == 200
                 || (int) lastCustomerRegistrationResponse.get("status") == 201);
@@ -96,6 +97,7 @@ public class SOAPSteps {
     @And("the merchant is registered with Simple DTU Pay using their bank account")
     public void theMerchantIsRegisteredWithSimpleDTUPayUsingTheirBankAccount() throws BankServiceException_Exception {
         lastMerchantRegistrationResponse = simpleDtuPay.registerMerchantWithResponse(merchant, merchantAccount);
+        System.out.println("Registered merchant this is the response: " + lastMerchantRegistrationResponse);
         assertNotNull(lastMerchantRegistrationResponse);
         assertTrue((int) lastMerchantRegistrationResponse.get("status") == 200
                 || (int) lastMerchantRegistrationResponse.get("status") == 201);
@@ -106,31 +108,39 @@ public class SOAPSteps {
     @And("the customer uses bank account id {string}")
     public void theCustomerUsesBankAccountId(String accountId) {
         customerAccount = accountId;
+        lastCustomerRegistrationResponse = new HashMap<>();
+        lastCustomerRegistrationResponse.put("dtuPayID", customerAccount);
     }
 
     @And("the merchant uses bank account id {string}")
     public void theMerchantUsesBankAccountId(String accountId) {
         merchantAccount = accountId;
+        lastMerchantRegistrationResponse = new HashMap<>();
+        lastMerchantRegistrationResponse.put("dtuPayID", merchantAccount);
     }
 
     @When("the customer attempts to register with Simple DTU Pay using their bank account")
     public void theCustomerAttemptsToRegisterWithSimpleDTUPayUsingTheirBankAccount() {
         lastCustomerRegistrationResponse = simpleDtuPay.registerCustomerWithResponse(customer, customerAccount);
+        System.out.println("Registered customer this is the response: " + lastCustomerRegistrationResponse);
     }
 
     @When("the customer attempts to register with Simple DTU Pay using bank account {string}")
     public void theCustomerAttemptsToRegisterWithSimpleDTUPayUsingBankAccount(String accountId) {
         lastCustomerRegistrationResponse = simpleDtuPay.registerCustomerWithResponse(customer, accountId);
+        System.out.println("Registered customer this is the response: " + lastCustomerRegistrationResponse);
     }
 
     @When("the merchant attempts to register with Simple DTU Pay using their bank account")
     public void theMerchantAttemptsToRegisterWithSimpleDTUPayUsingTheirBankAccount() {
         lastMerchantRegistrationResponse = simpleDtuPay.registerMerchantWithResponse(merchant, merchantAccount);
+        System.out.println("Registered merchant this is the response: " + lastMerchantRegistrationResponse);
     }
 
     @When("the merchant attempts to register with Simple DTU Pay using bank account {string}")
     public void theMerchantAttemptsToRegisterWithSimpleDTUPayUsingBankAccount(String accountId) {
         lastMerchantRegistrationResponse = simpleDtuPay.registerMerchantWithResponse(merchant, accountId);
+        System.out.println("Registered merchant this is the response: " + lastMerchantRegistrationResponse);
     }
 
     @And("the customer details are changed to name {string}, last name {string}, and CPR {string}")
@@ -195,13 +205,13 @@ public class SOAPSteps {
     @When("the SOAP merchant initiates a payment for {int} kr by the customer")
     public void theSOAPMerchantInitiatesAPaymentForKrByTheCustomer(int amount) {
         float amountFloat = (float) amount;
-        lastPaymentResponse = simpleDtuPay.registerPayment(amountFloat, customerAccount, merchantAccount, "TEST");
+        lastPaymentResponse = simpleDtuPay.registerPayment(amountFloat, lastCustomerRegistrationResponse.get("dtuPayID").toString(), lastMerchantRegistrationResponse.get("dtuPayID").toString(), "TEST");
     }
 
     @When("the SOAP merchant initiates a payment for {int} kr by the customer with the description {string}")
     public void theSOAPMerchantInitiatesAPaymentForKrByTheCustomerWithTheDescription(int amount, String desc) {
         float amountFloat = (float) amount;
-        lastPaymentResponse = simpleDtuPay.registerPayment(amountFloat, customerAccount, merchantAccount, desc);
+        lastPaymentResponse = simpleDtuPay.registerPayment(amountFloat, lastCustomerRegistrationResponse.get("dtuPayID").toString(), lastMerchantRegistrationResponse.get("dtuPayID").toString(), desc);
     }
 
     @Then("the SOAP payment fails with status {int}")

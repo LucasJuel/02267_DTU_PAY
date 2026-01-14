@@ -2,6 +2,7 @@ package org.thebois.endpoints.services;
 
 import jakarta.ws.rs.core.Response;
 import org.thebois.DTO.CustomerDTO;
+import org.thebois.utils.StorageHandler;
 
 
 import dtu.ws.fastmoney.Account;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class CustomerService {
     
     private final BankService bank = new BankService_Service().getBankServicePort();
+    private final StorageHandler storageHandler = StorageHandler.getInstance();
 
 
     public CustomerService() {
@@ -42,9 +44,21 @@ public class CustomerService {
                         .build();
             }
 
-            return Response.status(Response.Status.CREATED)
-                    .entity(account.getId())
-                    .build();
+            String serverUUID = java.util.UUID.randomUUID().toString();
+
+            storageHandler.storeCustomer(serverUUID, account);
+
+            if (storageHandler.getCustomer(serverUUID) == null) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\": \"Failed to store customer data.\"}")
+                        .build();
+            } else {
+                return Response.status(Response.Status.CREATED)
+                        .entity(serverUUID)
+                        .build();
+            }
+
+
         } catch (BankServiceException_Exception e) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"Bank account not found: " + e.getMessage() + "\"}")
@@ -58,8 +72,8 @@ public class CustomerService {
     }
 
     public Response getCustomer(String customerId) throws BankServiceException_Exception {
-        
-        Account customer = bank.getAccount(customerId);
+        Account customer = storageHandler.getCustomer(customerId); // Ensure customer is in storage
+
         if (customer == null) {
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("message", "customer with id \"" + customerId + "\" is unknown");

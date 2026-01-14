@@ -5,7 +5,7 @@ Feature: Payment_Errors_SOAP
     And the merchant is registered with Simple DTU Pay using their bank account
     And the customer uses bank account id "does-not-exist"
     When the SOAP merchant initiates a payment for 10 kr by the customer
-    Then the SOAP payment fails with status 500
+    Then the SOAP payment fails with status 404
     And the balance of the merchant at the bank is 1000 kr
 
   Scenario: Payment rejected when merchant account is unknown
