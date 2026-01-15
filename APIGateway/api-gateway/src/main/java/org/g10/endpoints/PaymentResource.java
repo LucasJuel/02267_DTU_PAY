@@ -1,6 +1,5 @@
-package org.thebois.endpoints.resources;
+package org.g10.endpoints;
 
-import org.thebois.utils.FileHandler;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -10,16 +9,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import org.thebois.DTO.PaymentDTO;
+import org.g10.DTO.PaymentDTO;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors; 
-import org.thebois.endpoints.services.PaymentService;
+import org.g10.endpoints.PaymentService;
 
 @Path("/payment")
 public class PaymentResource {
-    private final FileHandler fileHandler = new FileHandler("payments.json");
-
 
     // Implementation of PaymentResource class
 

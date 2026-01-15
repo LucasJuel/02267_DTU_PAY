@@ -1,10 +1,10 @@
-package org.thebois.endpoints.resources;
+package org.g10.endpoints;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.thebois.DTO.MerchantDTO;
-import org.thebois.endpoints.services.MerchantService;
+import org.g10.DTO.MerchantDTO;
+import org.g10.endpoints.MerchantService;
 
 
 @Path("/merchant")

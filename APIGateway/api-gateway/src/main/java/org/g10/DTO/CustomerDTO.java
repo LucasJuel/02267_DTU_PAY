@@ -1,4 +1,4 @@
-package org.thebois.DTO;
+package org.g10.DTO;
 
 public class CustomerDTO {
     private String firstName;
