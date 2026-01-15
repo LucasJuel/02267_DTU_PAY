@@ -12,11 +12,12 @@ import jakarta.ws.rs.core.Response;
 import org.g10.DTO.PaymentDTO;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors; 
 import org.g10.endpoints.PaymentService;
+import org.thebois.utils.StorageHandler;
 
 @Path("/payment")
 public class PaymentResource {
+
 
     // Implementation of PaymentResource class
 
@@ -41,11 +42,9 @@ public class PaymentResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response listPayments(@jakarta.ws.rs.PathParam("merchantId") String merchantId){
         try{
-            // List payments implementation
-            List<Map<String, Object>> payments = fileHandler.read();
-            List<Map<String,Object>> merchantPayments = payments.stream()
-                .filter(s -> merchantId.equals(s.get("merchantId")))
-                .collect(Collectors.toList());
+            // Use StorageHandler to retrieve payments for the merchant
+            List<Map<String, Object>> merchantPayments = StorageHandler.getInstance()
+                    .getPaymentsByMerchant(merchantId);
 
             return Response.ok()
                     .entity(merchantPayments)
@@ -58,22 +57,4 @@ public class PaymentResource {
         }
 
     }
-
-
-    //DTO for list for payments
-    class PaymentListRequest {
-        private String merchantId;
-        public PaymentListRequest() {
-        }
-        public String getMerchantId() {
-            return merchantId;
-        }
-        public void setMerchantId(String merchantId) {
-            this.merchantId = merchantId;
-        }
-    }
-}   
-
-
-
-
+}
