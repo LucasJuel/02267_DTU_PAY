@@ -1,28 +1,38 @@
 package org.g10.endpoints;
 
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.g10.DTO.MerchantDTO;
-import org.g10.endpoints.MerchantService;
+import org.g10.services.MerchantProducer;
+import org.thebois.DTO.MerchantDTO;
 
 
 @Path("/merchant")
 public class MerchantResource extends AbstractResource {
-    private final MerchantService merchantService = new MerchantService();
-
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response register(MerchantDTO request) {
-        // Adjust required fields to match your MerchantDTO
-        if (request == null || request.getFirstName() == null
+        if (request == null || request.getFirstName() == null || request.getLastName() == null
                 || request.getCpr() == null || request.getBankAccountId() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"companyName, cvr, and bankAccountId are required.\"}")
+                    .entity("{\"error\": \"firstName, lastName, cpr, and bankAccountId are required.\"}")
                     .build();
         }
-        return handleRegister(request, () -> merchantService.register(request));
+        return handleRegister(request, () -> {
+            try (MerchantProducer producer = new MerchantProducer()) {
+                producer.publishMerchantRegistered(request);
+                return Response.accepted()
+                        .entity("{\"status\": \"queued\"}")
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @GET
@@ -35,13 +45,9 @@ public class MerchantResource extends AbstractResource {
                     .entity("{\"error\": \"merchantId is required.\"}")
                     .build();
         }
-        try {
-            return merchantService.getMerchant(merchantId);
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")
-                    .build();
-        }
+        return Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity("{\"error\": \"Merchant lookup is not supported via the api-gateway.\"}")
+                .build();
 
     }
 

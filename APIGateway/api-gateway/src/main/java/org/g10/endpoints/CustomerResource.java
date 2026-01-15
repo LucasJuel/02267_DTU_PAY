@@ -9,13 +9,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.g10.DTO.CustomerDTO;
-import org.g10.endpoints.CustomerService;
+import org.g10.services.CustomerProducer;
 
 
 @Path("/customer")
 public class CustomerResource extends AbstractResource{
-    private final CustomerService customerService = new CustomerService();
-
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -26,8 +24,17 @@ public class CustomerResource extends AbstractResource{
                     .entity("{\"error\": \"firstName, lastName, cpr, and bankAccountId are required.\"}")
                     .build();
         }
-        return handleRegister(request, () -> customerService.register(request));
-    }s
+        return handleRegister(request, () -> {
+            try (CustomerProducer producer = new CustomerProducer()) {
+                producer.publishCustomerRegistered(request);
+                return Response.accepted()
+                        .entity("{\"status\": \"queued\"}")
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     @GET
     @Path("/{customerId}")
@@ -39,13 +46,9 @@ public class CustomerResource extends AbstractResource{
                     .entity("{\"error\": \"customerId is required.\"}")
                     .build();
         }
-        try {
-            return customerService.getCustomer(customerId);
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")
-                    .build();
-        }
+        return Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity("{\"error\": \"Customer lookup is not supported via the api-gateway.\"}")
+                .build();
 
     }
 
