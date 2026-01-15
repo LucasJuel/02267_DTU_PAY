@@ -1,4 +1,5 @@
 package test.java.org.g10.services;
+import org.g10.services.PaymentConsumer;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;

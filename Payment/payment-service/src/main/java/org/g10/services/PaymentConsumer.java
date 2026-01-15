@@ -5,18 +5,43 @@ import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonValue;
+
+import org.g10.services.PaymentService;
 import org.g10.utils.StorageHandler;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.channels.Channel;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Minimal consumer that parses the payment payload and stores it using {@link StorageHandler}.
- */
 public class PaymentConsumer {
+    private final String PAYMENT_QUEUE;
+    private static final String RABBITMQ_HOST = "rabbitmq";
+    private static final int RABBITMQ_PORT = 5672;
 
-    private final StorageHandler storageHandler;
+    private final Gson gson = new Gson();
+    private final PaymentService paymentService = new PaymentService();
+
+
+    private Channel channel;
+
+    public PaymentConsumer(String queueName) throws IOException, TimeoutException {
+        this(
+                getEnv("RABBITMQ_HOST", RABBITMQ_HOST),
+                getEnvInt("RABBITMQ_PORT", RABBITMQ_PORT)
+        );
+        PAYMENT_QUEUE = queueName;
+    }
+
+    public void startListening() throws Exception {
+        // Implementation for starting to listen to payment requests
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost(RABBITMQ_HOST);
+        factory.setPort(RABBITMQ_PORT);
+    }
+
+    /*private final StorageHandler storageHandler;
 
     public PaymentConsumer() {
         this(StorageHandler.getInstance());
@@ -63,5 +88,5 @@ public class PaymentConsumer {
             return null;
         }
         return json.getJsonNumber(key).doubleValue();
-    }
+    }*/
 }
