@@ -8,7 +8,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.g10.services.MerchantProducer;
-import org.thebois.DTO.MerchantDTO;
+import org.g10.DTO.MerchantDTO;
 
 
 @Path("/merchant")

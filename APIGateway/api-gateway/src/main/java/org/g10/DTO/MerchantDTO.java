@@ -1,4 +1,4 @@
-package org.thebois.DTO;
+package org.g10.DTO;
 
 public class MerchantDTO {
     private String firstName;
@@ -20,31 +20,17 @@ public class MerchantDTO {
         return firstName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
 
     public String getLastName() {
         return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
     }
 
     public String getCpr() {
         return cpr;
     }
 
-    public void setCpr(String cpr) {
-        this.cpr = cpr;
-    }
-
     public String getBankAccountId() {
         return bankAccountId;
     }
 
-    public void setBankAccountId(String bankAccountId) {
-        this.bankAccountId = bankAccountId;
-    }
 }

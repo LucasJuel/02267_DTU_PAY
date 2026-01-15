@@ -1,4 +1,4 @@
-package test.org.g10;
+package org.g10;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;
@@ -11,7 +11,7 @@ import static io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
-@ConfigurationParameter(key = FEATURES_PROPERTY_NAME, value = "classpath:features")
-@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "test.org.g10")
+@ConfigurationParameter(key = FEATURES_PROPERTY_NAME, value = "src/test/resources/features")
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "org.g10")
 public class RunTests {
 }

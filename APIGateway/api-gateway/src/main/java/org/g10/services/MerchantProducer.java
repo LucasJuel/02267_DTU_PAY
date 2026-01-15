@@ -9,7 +9,7 @@ import jakarta.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
-import org.thebois.DTO.MerchantDTO;
+import org.g10.DTO.MerchantDTO;
 
 public class MerchantProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "rabbitmq";
@@ -25,7 +25,7 @@ public class MerchantProducer implements AutoCloseable {
     public MerchantProducer() throws IOException, TimeoutException {
         this(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
-                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnvInt(),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 getEnv("RABBITMQ_MERCHANT_QUEUE", DEFAULT_QUEUE)
@@ -86,15 +86,15 @@ public class MerchantProducer implements AutoCloseable {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private static int getEnvInt(String key, int fallback) {
-        String value = System.getenv(key);
+    private static int getEnvInt() {
+        String value = System.getenv("RABBITMQ_PORT");
         if (value == null || value.isBlank()) {
-            return fallback;
+            return MerchantProducer.DEFAULT_PORT;
         }
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            return fallback;
+            return MerchantProducer.DEFAULT_PORT;
         }
     }
 }
