@@ -5,7 +5,7 @@ public class AccountServiceApplication {
     public static void main(String[] args) {
         System.out.println("Starting Account Service Application...");
         try{
-            Thread.sleep(5000);
+            // Thread.sleep(5000);
             consumer = new AccountConsumer();
             consumer.startListening();
             Thread.currentThread().join();

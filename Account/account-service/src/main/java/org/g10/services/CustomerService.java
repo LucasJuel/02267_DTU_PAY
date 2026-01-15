@@ -19,10 +19,7 @@ public class CustomerService {
 
     public String register(CustomerDTO request) {
         try {
-            String key = request.getBankAccountId();
-            if (key == null || key.isBlank()) {
-                key = java.util.UUID.randomUUID().toString();
-            }
+            String key = java.util.UUID.randomUUID().toString();
             storageHandler.storeCustomer(key, request);
             return key;
 

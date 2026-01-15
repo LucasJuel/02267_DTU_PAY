@@ -47,7 +47,4 @@ public class CustomerDTO {
     public void setBankAccountId(String bankAccountId) {
         this.bankAccountId = bankAccountId;
     }
-
-    public Object getAccountId() {
-    }
 }

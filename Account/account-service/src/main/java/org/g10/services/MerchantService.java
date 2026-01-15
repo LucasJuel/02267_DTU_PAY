@@ -18,30 +18,14 @@ public class MerchantService {
     }
 
     public String register(MerchantDTO request) {
-        try {
-            String serverUUID = java.util.UUID.randomUUID().toString();
-
-            storageHandler.storeMerchant(serverUUID, request);
-            return serverUUID;
-        } catch (Exception e) {
-            return null;
-        }
+        String serverUUID = java.util.UUID.randomUUID().toString();
+        storageHandler.storeMerchant(serverUUID, request);
+        return serverUUID;
     }
 
-    public Response getMerchant(String merchantId) {
+    public MerchantDTO getMerchant(String merchantId) {
         MerchantDTO merchant = storageHandler.getMerchant(merchantId); // Ensure merchant is in storage
-
-        if (merchant == null) {
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("message", "merchant with id \"" + merchantId + "\" is unknown");
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity(responseMap)
-                .build();
-        } else {
-            return Response.status(Response.Status.OK)
-                .entity(merchant)
-                .build();
-        }
+        return merchant;
     }
 
     public void handleMerchantRegistered(String message) {
