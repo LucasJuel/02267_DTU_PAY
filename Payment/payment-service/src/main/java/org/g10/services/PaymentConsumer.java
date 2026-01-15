@@ -1,4 +1,4 @@
-package main.java.org.g10.services;
+package org.g10.services;
 
 import jakarta.json.Json;
 import jakarta.json.JsonException;
