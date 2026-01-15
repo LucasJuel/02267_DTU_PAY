@@ -2,13 +2,19 @@ package org.thebois.utils;
 
 import java.util.Map;
 import dtu.ws.fastmoney.Account;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class StorageHandler {
     
     private static StorageHandler instance;
     
-    private Map<String, Account> customerStorage = new java.util.HashMap<>();
-    private Map<String, Account> merchantStorage = new java.util.HashMap<>();
+    private final Map<String, Account> customerStorage = new java.util.HashMap<>();
+    private final Map<String, Account> merchantStorage = new java.util.HashMap<>();
+
+    // Add in-memory payments storage
+    private final List<Map<String, Object>> payments = new ArrayList<>();
 
     // Private constructor
     private StorageHandler() {}
@@ -35,5 +41,19 @@ public class StorageHandler {
 
     public Account getMerchant(String merchantId){
         return merchantStorage.get(merchantId);
+    }
+
+    public synchronized void addPayment(Map<String, Object> payment) {
+        payments.add(payment);
+    }
+
+    public synchronized List<Map<String, Object>> readPayments() {
+        return new ArrayList<>(payments);
+    }
+
+    public synchronized List<Map<String, Object>> getPaymentsByMerchant(String merchantId) {
+        return payments.stream()
+                .filter(p -> merchantId.equals(p.get("merchantId")))
+                .collect(Collectors.toList());
     }
 }
