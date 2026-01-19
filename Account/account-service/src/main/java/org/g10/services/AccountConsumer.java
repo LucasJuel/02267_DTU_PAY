@@ -91,6 +91,7 @@ public class AccountConsumer implements AutoCloseable {
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println("Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {

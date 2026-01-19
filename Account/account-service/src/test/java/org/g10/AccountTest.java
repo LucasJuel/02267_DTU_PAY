@@ -18,6 +18,8 @@ import org.g10.services.MerchantService;
 import com.rabbitmq.client.AMQP;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
@@ -33,6 +35,8 @@ public class AccountTest {
     private AccountServiceApplication app;
     private String customer_result;
     private String merchant_result;
+    private Map<String, MerchantDTO> merchants = new HashMap<>();
+    private Map<String, String> merchantResults = new HashMap<>();
     private Thread thread;
 
     @Before
@@ -63,7 +67,7 @@ public class AccountTest {
         assertNotNull(app);
     }
 
-    @When("a customer with name {string}, last name {string}, and CPR {string}")
+    @Given("a customer with name {string}, last name {string}, and CPR {string}")
     public void aCustomerWithNameLastNameAndCPR(String arg0, String arg1, String arg2) {
         customer = new CustomerDTO(arg0, arg1, arg2, "account-123");
     }
@@ -73,24 +77,25 @@ public class AccountTest {
         //Publish to RabbitMQ to trigger account creation
         try {
             String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
             CompletableFuture <String> future = new CompletableFuture<>();
-            channel.basicConsume("account.customer", true, (consumerTag, message) -> {
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
                 if (correlationId.equals(message.getProperties().getCorrelationId())) {
-                    String response = new String(message.getBody());
-                    future.complete(response);   
+                    future.complete(new String(message.getBody()));
                 }
-            }, consumerTag -> {
+            }, tag -> {
             });
             AMQP.BasicProperties props = new AMQP.BasicProperties
                     .Builder()
                     .correlationId(correlationId)
-                    .replyTo("account.customer")
+                    .replyTo(replyQueue)
                     .build();
             String payload = String.format("{\"firstName\":\"%s\",\"lastName\":\"%s\",\"cpr\":\"%s\",\"bankAccountId\":\"%s\"}",
                     customer.getFirstName(), customer.getLastName(), customer.getCpr(), customer.getBankAccountId());
             channel.basicPublish("", "account.customer", props, payload.getBytes());
             customer_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             System.out.println("Received response: " + customer_result);
+            channel.basicCancel(consumerTag);
         } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
             e.printStackTrace();
         }
@@ -113,9 +118,10 @@ public class AccountTest {
         }
     }
 
-    @When("a merchant with name {string}, last name {string}, and CPR {string}")
+    @Given("a merchant with name {string}, last name {string}, and CPR {string}")
     public void aMerchantWithNameLastNameAndCPR(String arg0, String arg1, String arg2) {
         merchant = new MerchantDTO(arg0, arg1, arg2, "account-123");
+        merchants.put(arg0, merchant);
     }
 
     @When("I register the merchant with the account service")
@@ -123,24 +129,25 @@ public class AccountTest {
         //Publish to RabbitMQ to trigger account creation
         try {
             String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
             CompletableFuture <String> future = new CompletableFuture<>();
-            channel.basicConsume("account.merchant", true, (consumerTag, message) -> {
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
                 if (correlationId.equals(message.getProperties().getCorrelationId())) {
-                    String response = new String(message.getBody());
-                    future.complete(response);   
+                    future.complete(new String(message.getBody()));
                 }
-            }, consumerTag -> {
+            }, tag -> {
             });
             AMQP.BasicProperties props = new AMQP.BasicProperties
                     .Builder()
                     .correlationId(correlationId)
-                    .replyTo("account.merchant")
+                    .replyTo(replyQueue)
                     .build();
             String payload = String.format("{\"firstName\":\"%s\",\"lastName\":\"%s\",\"cpr\":\"%s\",\"bankAccountId\":\"%s\"}",
                     merchant.getFirstName(), merchant.getLastName(), merchant.getCpr(), merchant.getBankAccountId());
             channel.basicPublish("", "account.merchant", props, payload.getBytes());
             merchant_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             System.out.println("Received Merchant response: " + merchant_result);
+            channel.basicCancel(consumerTag);
         } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
             e.printStackTrace();
         }
@@ -158,6 +165,64 @@ public class AccountTest {
             assertEquals(merchant.getFirstName(), merchant1.getFirstName());
             assertEquals(merchant.getLastName(), merchant1.getLastName());
             assertEquals(merchant.getCpr(), merchant1.getCpr());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @When("I register the merchants with the account service")
+    public void iRegisterTheMerchantsWithTheAccountService() {
+        // Register all merchants in the map
+        for (Map.Entry<String, MerchantDTO> entry : merchants.entrySet()) {
+            String merchantName = entry.getKey();
+            MerchantDTO merchantDTO = entry.getValue();
+            try {
+                String correlationId = java.util.UUID.randomUUID().toString();
+                String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+                CompletableFuture<String> future = new CompletableFuture<>();
+                String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                    if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                        future.complete(new String(message.getBody()));
+                    }
+                }, tag -> {
+                });
+                AMQP.BasicProperties props = new AMQP.BasicProperties
+                        .Builder()
+                        .correlationId(correlationId)
+                        .replyTo(replyQueue)
+                        .build();
+                String payload = String.format("{\"firstName\":\"%s\",\"lastName\":\"%s\",\"cpr\":\"%s\",\"bankAccountId\":\"%s\"}",
+                        merchantDTO.getFirstName(), merchantDTO.getLastName(), merchantDTO.getCpr(), merchantDTO.getBankAccountId());
+                channel.basicPublish("", "account.merchant", props, payload.getBytes());
+                String result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                merchantResults.put(merchantName, result);
+                System.out.println("Registered merchant " + merchantName + ": " + result);
+                channel.basicCancel(consumerTag);
+            } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Then("there is a message in the account queue for {string} with the merchant details")
+    public void thereIsAMessageInTheAccountQueueForWithTheMerchantDetails(String merchantName) {
+        try {
+            Thread.sleep(2000); // Wait for the message to be processed
+            consumer = app.getConsumer();
+            MerchantService service = consumer.getMerchantService();
+            
+            // Get the result ID for this specific merchant
+            String merchantId = merchantResults.get(merchantName);
+            assertNotNull(merchantId, "No result found for merchant: " + merchantName);
+            
+            // Verify that the merchant was created in the service
+            MerchantDTO expectedMerchant = merchants.get(merchantName);
+            MerchantDTO actualMerchant = service.getMerchant(merchantId);
+            
+            assertNotNull(actualMerchant);
+            assertEquals(expectedMerchant.getFirstName(), actualMerchant.getFirstName());
+            assertEquals(expectedMerchant.getLastName(), actualMerchant.getLastName());
+            assertEquals(expectedMerchant.getCpr(), actualMerchant.getCpr());
         } catch (Exception e) {
             e.printStackTrace();
         }
