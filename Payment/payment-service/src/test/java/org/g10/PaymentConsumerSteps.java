@@ -172,11 +172,6 @@ public class PaymentConsumerSteps {
 
     }
 
-    @And("^a transaction request comes through rabbitMQ$")
-    public void aTransactionRequestComesThroughRabbitMQ() {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
 
     @After
     public void deleteAccounts() throws BankServiceException_Exception {
