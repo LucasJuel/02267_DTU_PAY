@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class StorageHandler {
 
-    private static StorageHandler instance;
+    private static org.g10.utils.StorageHandler instance;
 
     private final Map<String, CustomerDTO> customerStorage = new java.util.HashMap<>();
     private final Map<String, MerchantDTO> merchantStorage = new java.util.HashMap<>();
@@ -22,9 +22,9 @@ public class StorageHandler {
     }
 
     // Get singleton instance
-    public static synchronized StorageHandler getInstance() {
+    public static synchronized org.g10.utils.StorageHandler getInstance() {
         if (instance == null) {
-            instance = new StorageHandler();
+            instance = new org.g10.utils.StorageHandler();
         }
         return instance;
     }

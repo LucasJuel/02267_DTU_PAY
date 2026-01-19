@@ -4,18 +4,10 @@ Feature: Payment consumer persists payment events
   I want to store each consumed payment request in the storage handler
 
   Scenario: Store a payment event from JSON payload
-    Given a fresh payment store
-    When the payment consumer handles payload:
-      """
-      {
-        "customerAccountId": "cust-42",
-        "merchantAccountId": "merch-99",
-        "amount": 125.75,
-        "message": "Paying for coffee"
-      }
-      """
-    Then the payment storage contains the following entry:
-      | customerAccountId | cust-42         |
-      | merchantAccountId | merch-99        |
-      | amount            | 125.75          |
-      | message           | Paying for coffee |
+    Given the payment service is running
+    And the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "torsten" lastname "torstenTO" with cpr "87654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 20.5 kr and message "Payment for 20.5 kr initiated"
+    When I register the payment with the payment service
+    Then the payment service should respond with a success message
+    And  The customer has balance 479.5 on their bank account and merchant has balance 520.5

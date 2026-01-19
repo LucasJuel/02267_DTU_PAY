@@ -3,8 +3,6 @@ package org.g10.services;
 import com.rabbitmq.client.*;
 import org.g10.DTO.CustomerDTO;
 import org.g10.DTO.MerchantDTO;
-import org.g10.services.CustomerService;
-import org.g10.services.MerchantService;
 import com.rabbitmq.client.ConnectionFactory;
 import com.google.gson.Gson;
 

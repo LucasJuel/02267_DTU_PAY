@@ -97,6 +97,10 @@
             <artifactId>amqp-client</artifactId>
             <version>5.21.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

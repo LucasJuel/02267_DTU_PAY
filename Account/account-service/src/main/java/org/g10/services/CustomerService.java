@@ -1,11 +1,7 @@
 package org.g10.services;
 
-import jakarta.ws.rs.core.Response;
 import org.g10.DTO.CustomerDTO;
 import org.g10.utils.StorageHandler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class CustomerService {
