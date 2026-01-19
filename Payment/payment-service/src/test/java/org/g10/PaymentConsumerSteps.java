@@ -1,8 +1,6 @@
-package org.g10.services;
-import org.g10.DTO.CustomerDTO;
-import org.g10.DTO.MerchantDTO;
+package org.g10;
+import io.cucumber.java.PendingException;
 import org.g10.DTO.PaymentDTO;
-import org.g10.services.PaymentConsumer;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
@@ -10,32 +8,20 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.cucumber.java.it.Data;
-import jakarta.json.JsonException;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.Json;
-
-import org.g10.utils.StorageHandler;
 
 import com.google.gson.Gson;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.g10.services.PaymentConsumer;
+import org.g10.services.PaymentServiceApplication;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PaymentConsumerSteps {
@@ -78,7 +64,7 @@ public class PaymentConsumerSteps {
 
     }
 
-    @And("a transaction exists with the following payload:") 
+    @And("a transaction exists with the following payload:")
     public void a_transaction_exists_with_the_following_payload(DataTable table) {
         Map<String, String> details = table.asMap(String.class, String.class);
 
@@ -126,12 +112,9 @@ public class PaymentConsumerSteps {
         // Further assertions can be made based on the expected response format
     }
 
-
-
-    private StorageHandler resetStorageHandlerSingleton() throws Exception {
-        Field instanceField = StorageHandler.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, null);
-        return StorageHandler.getInstance();
+    @And("^a transaction request comes through rabbitMQ$")
+    public void aTransactionRequestComesThroughRabbitMQ() {
+        // Write code here that turns the phrase above into concrete actions
+        throw new PendingException();
     }
 }

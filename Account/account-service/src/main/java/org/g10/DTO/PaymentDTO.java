@@ -1,16 +1,18 @@
 package org.g10.DTO;
 
+import java.math.BigDecimal;
+
 public class PaymentDTO {
     private String customerAccountId;
     private String merchantAccountId;
-    private float amount;
+    private BigDecimal amount;
     private String message;
 
 
     public PaymentDTO() {
     }
 
-    public PaymentDTO(String customerAccountId, String merchantAccountId, float amount, String message) {
+    public PaymentDTO(String customerAccountId, String merchantAccountId, BigDecimal amount, String message) {
         this.customerAccountId = customerAccountId;
         this.merchantAccountId = merchantAccountId;
         this.amount = amount;
@@ -33,11 +35,11 @@ public class PaymentDTO {
         this.merchantAccountId = merchantAccountId;
     }
 
-    public float getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(float amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
