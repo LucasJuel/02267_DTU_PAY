@@ -1,44 +1,88 @@
 package org.g10.services;
 
-import jakarta.json.Json;
-import jakarta.json.JsonException;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonValue;
+import com.google.gson.Gson;
+import com.rabbitmq.client.*;
 
-import org.g10.services.PaymentService;
-import org.g10.utils.StorageHandler;
+import org.g10.DTO.PaymentDTO;
+
+import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.channels.Channel;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeoutException;
 
-public class PaymentConsumer {
-    private final String PAYMENT_QUEUE;
-    private static final String RABBITMQ_HOST = "rabbitmq";
-    private static final int RABBITMQ_PORT = 5672;
+
+public class PaymentConsumer implements AutoCloseable {
+    private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 5672;
+    private static final String DEFAULT_USERNAME = "guest";
+    private static final String DEFAULT_PASSWORD = "guest";
+    private static final String DEFAULT_QUEUE_PAYMENT = "payment.requests";
 
     private final Gson gson = new Gson();
     private final PaymentService paymentService = new PaymentService();
 
+    private final String rabbitHost;
+    private final int rabbitPort;
+    private final String rabbitUser;
+    private final String rabbitPassword;
+    private final String queueName;
 
+    private Connection connection;
     private Channel channel;
-
-    public PaymentConsumer(String queueName) throws IOException, TimeoutException {
+    public PaymentConsumer() throws IOException, TimeoutException {
         this(
-                getEnv("RABBITMQ_HOST", RABBITMQ_HOST),
-                getEnvInt("RABBITMQ_PORT", RABBITMQ_PORT)
+            getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+            getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+            getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+            getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+            getEnv("RABBITMQ_QUEUE_PAYMENT", DEFAULT_QUEUE_PAYMENT)
         );
-        PAYMENT_QUEUE = queueName;
     }
 
+    public PaymentConsumer(String rabbitHost, int rabbitPort, String rabbitUser, String rabbitPassword, String queueName) {
+        this.rabbitHost = rabbitHost;
+        this.rabbitPort = rabbitPort;
+        this.rabbitUser = rabbitUser;
+        this.rabbitPassword = rabbitPassword;
+        this.queueName = queueName;
+    }
+    
     public void startListening() throws Exception {
-        // Implementation for starting to listen to payment requests
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(RABBITMQ_HOST);
-        factory.setPort(RABBITMQ_PORT);
+        factory.setHost(rabbitHost);
+        factory.setPort(rabbitPort);
+        factory.setUsername(rabbitUser);
+        factory.setPassword(rabbitPassword);
+
+        connection = factory.newConnection();
+        channel = connection.createChannel();
+        channel.queueDeclare(queueName, true, false, false, null);
+
+        System.out.println(" [*] Waiting for payment messages on queue '" + queueName + "'. To exit press CTRL+C");
+
+        DeliverCallback callback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [x] Received '" + message + "'");
+            try {
+                PaymentDTO paymentRequest = gson.fromJson(message, PaymentDTO.class);
+                Response serviceResponse = paymentService.register(paymentRequest);
+
+                Object entity = serviceResponse.getEntity();
+                String responseBody = (entity == null) ? "{}" : (entity instanceof String ? (String) entity : gson.toJson(entity));
+
+                String replyTo = delivery.getProperties().getReplyTo();
+                if (replyTo != null && !replyTo.isBlank()) {
+                    String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println("Sending response: " + responseBody + " to " + replyTo + " with correlationId " + correlationId);
+                    sendResponse(channel, replyTo, correlationId, responseBody);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        channel.basicConsume(queueName, true, callback, consumerTag -> { });
     }
 
     /*private final StorageHandler storageHandler;
@@ -89,4 +133,37 @@ public class PaymentConsumer {
         }
         return json.getJsonNumber(key).doubleValue();
     }*/
+
+    private void sendResponse(Channel channel, String replyTo, String correlationId, String response) throws IOException {
+        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
+                .correlationId(correlationId)
+                .contentType("application/json")
+                .deliveryMode(2)
+                .build();
+        channel.basicPublish("", replyTo, props, response.getBytes(StandardCharsets.UTF_8));
+    }
+
+
+    private static String getEnv(String key, String fallback) {
+        String value = System.getenv(key);
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private static int getEnvInt(String key, int fallback) {
+        String value = System.getenv(key);
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (channel != null && channel.isOpen()) channel.close();
+        if (connection != null && connection.isOpen()) connection.close();
+    }
 }

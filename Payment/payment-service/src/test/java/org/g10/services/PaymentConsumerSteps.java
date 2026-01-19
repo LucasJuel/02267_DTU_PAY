@@ -1,63 +1,132 @@
-package test.java.org.g10.services;
+package org.g10.services;
+import org.g10.DTO.CustomerDTO;
+import org.g10.DTO.MerchantDTO;
+import org.g10.DTO.PaymentDTO;
 import org.g10.services.PaymentConsumer;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.cucumber.java.it.Data;
+import jakarta.json.JsonException;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.Json;
+
 import org.g10.utils.StorageHandler;
 
+import com.google.gson.Gson;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PaymentConsumerSteps {
-
-    private StorageHandler storage;
     private PaymentConsumer consumer;
-    private List<Map<String, Object>> observedPayments = Collections.emptyList();
+    private PaymentDTO payment;
+    private ConnectionFactory factory;
+    private Connection connection;
+    private Channel channel;
+    private PaymentServiceApplication app;
+    private String payment_result;
+    private Thread thread;
 
     @Before
-    public void setUp() throws Exception {
-        storage = resetStorageHandlerSingleton();
-        consumer = new PaymentConsumer(storage);
-        observedPayments = Collections.emptyList();
+    public void setup() throws IOException, TimeoutException {
+        factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setPort(5672);
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        connection = factory.newConnection();
+        channel = connection.createChannel();
+        channel.queueDeclare("payment.requests", true, false, false, null);
+        
+        thread = new Thread(() -> {
+            app = new PaymentServiceApplication();
+            PaymentServiceApplication.main(new String[]{});
+        });
+        thread.start();
+        try {
+            Thread.sleep(2000); // Wait for the service to start
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    @Given("a fresh payment store")
+    @Given("the payment service is running")
     public void a_fresh_payment_store() {
         // Storage already reset in @Before
+        assertNotNull(app);
+
     }
 
-    @When("the payment consumer handles payload:")
-    public void the_payment_consumer_handles_payload(String payload) {
-        consumer.handlePaymentRequested(payload);
-        observedPayments = storage.readPayments();
+    @And("a transaction exists with the following payload:") 
+    public void a_transaction_exists_with_the_following_payload(DataTable table) {
+        Map<String, String> details = table.asMap(String.class, String.class);
+
+
+        PaymentDTO paymentDTO = new PaymentDTO();
+        paymentDTO.setAmount(new BigDecimal(details.get("amount")));
+        paymentDTO.setCustomerAccountId(details.get("customerId"));
+        paymentDTO.setMerchantAccountId(details.get("merchantId"));
+        paymentDTO.setMessage(details.get("message"));
+
     }
 
-    @Then("the payment storage contains the following entry:")
-    public void the_payment_storage_contains_the_following_entry(DataTable expectedTable) {
-        Map<String, String> expected = expectedTable.asMap(String.class, String.class);
-        assertEquals(1, observedPayments.size(), "Expected exactly one payment stored");
+    @When("I register the payment with the payment service") 
+    public void i_register_the_payment_with_the_payment_service() {
+        try {
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+            CompletableFuture <String> future = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                    future.complete(new String(message.getBody()));
+                }
+                }, tag -> {
+                });
+            AMQP.BasicProperties props = new AMQP.BasicProperties
+                    .Builder()
+                    .correlationId(correlationId)
+                    .replyTo(replyQueue)
+                    .build();
+            String payload = new Gson().toJson(payment);
+            channel.basicPublish("", "payment.requests", props, payload.getBytes());
+            payment_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
+            System.out.println("Received response: " + payment_result);
+            channel.basicCancel(consumerTag);
 
-        Map<String, Object> actual = observedPayments.get(0);
-        expected.forEach((field, expectedValue) -> {
-            if ("amount".equals(field)) {
-                Object actualAmountValue = actual.get(field);
-                double actualAmount = actualAmountValue == null ? 0.0 : ((Number) actualAmountValue).doubleValue();
-                double expectedAmount = Double.parseDouble(expectedValue);
-                assertEquals(expectedAmount, actualAmount, 0.0001, "Mismatch for amount");
-            } else {
-                Object actualValue = actual.get(field);
-                String actualAsString = actualValue == null ? null : actualValue.toString();
-                assertEquals(expectedValue, actualAsString, "Mismatch for field " + field);
-            }
-        });
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            e.printStackTrace();
+        }
     }
+
+    @Then("the payment service should respond with a success message")
+    public void the_payment_service_should_respond_with_a_success_message() {
+        assertNotNull(payment_result);
+        System.out.println("Payment service response: " + payment_result);
+        // Further assertions can be made based on the expected response format
+    }
+
+
 
     private StorageHandler resetStorageHandlerSingleton() throws Exception {
         Field instanceField = StorageHandler.class.getDeclaredField("instance");

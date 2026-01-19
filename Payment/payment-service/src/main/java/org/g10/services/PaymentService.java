@@ -36,7 +36,7 @@ public class PaymentService {
                     .build();
             }
 
-            BigDecimal amount = new BigDecimal(request.getAmount());
+            BigDecimal amount = request.getAmount();
 
             if(amount.compareTo(BigDecimal.ZERO) <= 0){
                 return Response.status(Response.Status.BAD_REQUEST)

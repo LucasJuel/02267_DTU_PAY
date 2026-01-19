@@ -4,18 +4,12 @@ Feature: Payment consumer persists payment events
   I want to store each consumed payment request in the storage handler
 
   Scenario: Store a payment event from JSON payload
-    Given a fresh payment store
-    When the payment consumer handles payload:
-      """
-      {
-        "customerAccountId": "cust-42",
-        "merchantAccountId": "merch-99",
-        "amount": 125.75,
-        "message": "Paying for coffee"
-      }
-      """
-    Then the payment storage contains the following entry:
-      | customerAccountId | cust-42         |
-      | merchantAccountId | merch-99        |
-      | amount            | 125.75          |
-      | message           | Paying for coffee |
+    Given the payment service is running
+    And a transaction request comes through rabbitMQ
+    Given a transaction exists with the following details:
+      | amount            | 100.50            |
+      | customerAccountId | cust-123          |
+      | merchantAccountId | merch-456         |
+      | message           | Payment for order |
+    When I register the payment with the payment service
+    Then there is a message in the message queue containing the payment details
