@@ -45,4 +45,10 @@ public class StorageHandler {
     public MerchantDTO getMerchant(String merchantId) {
         return merchantStorage.get(merchantId);
     }
+
+    public void clearAll() {
+        customerStorage.clear();
+        merchantStorage.clear();
+        payments.clear();
+    }
 }
