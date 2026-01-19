@@ -1,4 +1,4 @@
-package org.thebois.endpoints.resources;
+package org.g10.endpoints;
 
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;

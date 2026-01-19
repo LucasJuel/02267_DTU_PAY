@@ -1,9 +1,31 @@
 services:
   server:
     build: ./Server/thebois-dtu-pay
-    container_name: dtu-pay-server
+    container_name: server
     environment:
       - QUARKUS_HTTP_HOST=0.0.0.0
+    ports:
+      - "8083:8080"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080"]
+      interval: 5s       # Increased from 1s to prevent premature failure
+      timeout: 5s
+      retries: 5        # Increased retries for slower Jenkins boots
+      start_period: 15s  # Increased to give Quarkus time to start
+    networks:
+      - dtu-network
+    
+  api-gateway:
+    build:
+      context: ./APIGateway/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
     ports:
       - "8080:8080"
     healthcheck:
@@ -15,20 +37,72 @@ services:
     networks:
       - dtu-network
 
+  account-service:
+    build: ./Account/account-service
+    container_name: account-service
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    ports:
+      - "8081:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtu-network
+
+  payment-service:
+    build: ./Payment/payment-service
+    container_name: payment-service
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    ports:
+      - "8082:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - dtu-network
+
   client:
     build: ./Client/dtu-pay-client
     container_name: dtu-pay-client
     environment:
       # This matches the System.getenv("SERVER_URL") in your Java code
-      # 'server' is the service name defined at the top of this file
-      - SERVER_URL=http://server:8080
+      # 'api-gateway' is the service name defined at the top of this file
+      - SERVER_URL=http://api-gateway:8080
     ports:
       - "8181:8181"
     volumes:
       - ./Client/dtu-pay-client/target/surefire-reports:/app/target/surefire-reports
     depends_on:
-      server:
+      api-gateway:
         condition: service_healthy
+    networks:
+      - dtu-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI
+    healthcheck:
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics -q ping || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - dtu-network
 

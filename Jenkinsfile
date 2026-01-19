@@ -13,15 +13,22 @@ pipeline {
                 echo "System is healthy and ready for testing."
             }
         }
-        stage('3. Run Maven Test Suite') {
+        stage('3. Run Maven Tests (All Services)') {
             steps {
-                script {
-                    try {
-                        sh 'docker compose exec -T client mvn test'
-                    } catch (Exception e) {
-                        sh 'docker compose logs --tail=50 server'
-                        error "Tests failed. Check server logs above."
-                    }
+                dir('Account/account-service') {
+                    sh 'mvn test'
+                }
+                dir('Payment/payment-service') {
+                    sh 'mvn test'
+                }
+                dir('APIGateway/api-gateway') {
+                    sh 'mvn test'
+                }
+                dir('Server/thebois-dtu-pay') {
+                    sh 'mvn test'
+                }
+                dir('Client/dtu-pay-client') {
+                    sh 'mvn test'
                 }
             }
         }

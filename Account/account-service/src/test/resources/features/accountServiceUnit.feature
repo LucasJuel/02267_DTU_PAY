@@ -1,0 +1,39 @@
+Feature: Account service unit behavior
+
+  Scenario: Register customer directly via service
+    Given a clean account storage
+    When I register a customer with first name "Anna", last name "Andersen", CPR "123456-7890", and bank account "account-123"
+    Then the stored customer matches the registration
+
+  Scenario: Register merchant directly via service
+    Given a clean account storage
+    When I register a merchant with first name "Benny", last name "Bentsen", CPR "098765-4321", and bank account "account-456"
+    Then the stored merchant matches the registration
+
+  Scenario: Look up unknown customer
+    Given a clean account storage
+    When I fetch a customer with id "missing-id"
+    Then no customer is returned
+
+  Scenario: Look up unknown merchant
+    Given a clean account storage
+    When I fetch a merchant with id "missing-id"
+    Then no merchant is returned
+
+  Scenario: Register same customer twice yields different ids
+    Given a clean account storage
+    When I register a customer with first name "Anna", last name "Andersen", CPR "123456-7890", and bank account "account-123"
+    And I register the same customer again
+    Then both customer registrations are stored separately
+
+  Scenario: Register same merchant twice yields different ids
+    Given a clean account storage
+    When I register a merchant with first name "Benny", last name "Bentsen", CPR "098765-4321", and bank account "account-456"
+    And I register the same merchant again
+    Then both merchant registrations are stored separately
+
+  Scenario: Customer and merchant storage are isolated
+    Given a clean account storage
+    When I register a customer with first name "Clara", last name "Clausen", CPR "567890-1234", and bank account "account-789"
+    And I register a merchant with first name "Dan", last name "Dahl", CPR "222333-4444", and bank account "account-999"
+    Then customer and merchant ids do not resolve across stores

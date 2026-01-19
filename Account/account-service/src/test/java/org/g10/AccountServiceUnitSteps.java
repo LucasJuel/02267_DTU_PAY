@@ -1,0 +1,123 @@
+package org.g10;
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import org.g10.DTO.CustomerDTO;
+import org.g10.DTO.MerchantDTO;
+import org.g10.services.CustomerService;
+import org.g10.services.MerchantService;
+import org.g10.utils.StorageHandler;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AccountServiceUnitSteps {
+
+    private CustomerService customerService;
+    private MerchantService merchantService;
+    private CustomerDTO registeredCustomer;
+    private MerchantDTO registeredMerchant;
+    private String customerId;
+    private String merchantId;
+    private String secondCustomerId;
+    private String secondMerchantId;
+    private CustomerDTO fetchedCustomer;
+    private MerchantDTO fetchedMerchant;
+
+    @Given("a clean account storage")
+    public void aCleanAccountStorage() {
+        StorageHandler.getInstance().clearAll();
+        customerService = new CustomerService();
+        merchantService = new MerchantService();
+    }
+
+    @When("I register a customer with first name {string}, last name {string}, CPR {string}, and bank account {string}")
+    public void iRegisterACustomer(String firstName, String lastName, String cpr, String bankAccountId) {
+        registeredCustomer = new CustomerDTO(firstName, lastName, cpr, bankAccountId);
+        customerId = customerService.register(registeredCustomer);
+    }
+
+    @Then("the stored customer matches the registration")
+    public void theStoredCustomerMatchesTheRegistration() {
+        assertNotNull(customerId);
+        CustomerDTO stored = customerService.getCustomer(customerId);
+        assertNotNull(stored);
+        assertEquals(registeredCustomer.getFirstName(), stored.getFirstName());
+        assertEquals(registeredCustomer.getLastName(), stored.getLastName());
+        assertEquals(registeredCustomer.getCpr(), stored.getCpr());
+        assertEquals(registeredCustomer.getBankAccountId(), stored.getBankAccountId());
+    }
+
+    @When("I register a merchant with first name {string}, last name {string}, CPR {string}, and bank account {string}")
+    public void iRegisterAMerchant(String firstName, String lastName, String cpr, String bankAccountId) {
+        registeredMerchant = new MerchantDTO(firstName, lastName, cpr, bankAccountId);
+        merchantId = merchantService.register(registeredMerchant);
+    }
+
+    @Then("the stored merchant matches the registration")
+    public void theStoredMerchantMatchesTheRegistration() {
+        assertNotNull(merchantId);
+        MerchantDTO stored = merchantService.getMerchant(merchantId);
+        assertNotNull(stored);
+        assertEquals(registeredMerchant.getFirstName(), stored.getFirstName());
+        assertEquals(registeredMerchant.getLastName(), stored.getLastName());
+        assertEquals(registeredMerchant.getCpr(), stored.getCpr());
+        assertEquals(registeredMerchant.getBankAccountId(), stored.getBankAccountId());
+    }
+
+    @When("I fetch a customer with id {string}")
+    public void iFetchACustomerWithId(String id) {
+        fetchedCustomer = customerService.getCustomer(id);
+    }
+
+    @Then("no customer is returned")
+    public void noCustomerIsReturned() {
+        assertNull(fetchedCustomer);
+    }
+
+    @When("I fetch a merchant with id {string}")
+    public void iFetchAMerchantWithId(String id) {
+        fetchedMerchant = merchantService.getMerchant(id);
+    }
+
+    @Then("no merchant is returned")
+    public void noMerchantIsReturned() {
+        assertNull(fetchedMerchant);
+    }
+
+    @When("I register the same customer again")
+    public void iRegisterTheSameCustomerAgain() {
+        secondCustomerId = customerService.register(registeredCustomer);
+    }
+
+    @Then("both customer registrations are stored separately")
+    public void bothCustomerRegistrationsAreStoredSeparately() {
+        assertNotNull(customerId);
+        assertNotNull(secondCustomerId);
+        assertNotEquals(customerId, secondCustomerId);
+        assertNotNull(customerService.getCustomer(customerId));
+        assertNotNull(customerService.getCustomer(secondCustomerId));
+    }
+
+    @When("I register the same merchant again")
+    public void iRegisterTheSameMerchantAgain() {
+        secondMerchantId = merchantService.register(registeredMerchant);
+    }
+
+    @Then("both merchant registrations are stored separately")
+    public void bothMerchantRegistrationsAreStoredSeparately() {
+        assertNotNull(merchantId);
+        assertNotNull(secondMerchantId);
+        assertNotEquals(merchantId, secondMerchantId);
+        assertNotNull(merchantService.getMerchant(merchantId));
+        assertNotNull(merchantService.getMerchant(secondMerchantId));
+    }
+
+    @Then("customer and merchant ids do not resolve across stores")
+    public void customerAndMerchantIdsDoNotResolveAcrossStores() {
+        assertNotNull(customerId);
+        assertNotNull(merchantId);
+        assertNull(customerService.getCustomer(merchantId));
+        assertNull(merchantService.getMerchant(customerId));
+    }
+}
