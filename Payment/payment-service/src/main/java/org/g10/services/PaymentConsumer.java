@@ -66,16 +66,13 @@ public class PaymentConsumer implements AutoCloseable {
             System.out.println(" [x] Received '" + message + "'");
             try {
                 PaymentDTO paymentRequest = gson.fromJson(message, PaymentDTO.class);
-                Response serviceResponse = paymentService.register(paymentRequest);
-
-                Object entity = serviceResponse.getEntity();
-                String responseBody = (entity == null) ? "{}" : (entity instanceof String ? (String) entity : gson.toJson(entity));
+                String serviceResponse = paymentService.register(paymentRequest);
 
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending response: " + responseBody + " to " + replyTo + " with correlationId " + correlationId);
-                    sendResponse(channel, replyTo, correlationId, responseBody);
+                    System.out.println("Sending response: " + serviceResponse + " to " + replyTo + " with correlationId " + correlationId);
+                    sendResponse(channel, replyTo, correlationId, serviceResponse);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

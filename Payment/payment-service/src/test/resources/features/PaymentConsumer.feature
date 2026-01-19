@@ -5,10 +5,9 @@ Feature: Payment consumer persists payment events
 
   Scenario: Store a payment event from JSON payload
     Given the payment service is running
-    And a transaction exists with the following payload:
-      | amount            | 100.50            |
-      | customerAccountId | cust-123          |
-      | merchantAccountId | merch-456         |
-      | message           | Payment for order |
+    And the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "torsten" lastname "torstenTO" with cpr "87654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 20.5 kr and message "Payment for 20.5 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with a success message
+    And  The customer has balance 479.5 on their bank account and merchant has balance 520.5

@@ -16,7 +16,7 @@ public class PaymentProducer implements AutoCloseable {
     private static final int DEFAULT_PORT = 5672;
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
-    private static final String DEFAULT_QUEUE = "payment.events";
+    private static final String DEFAULT_QUEUE = "payment.requests";
 
     private final Connection connection;
     private final Channel channel;

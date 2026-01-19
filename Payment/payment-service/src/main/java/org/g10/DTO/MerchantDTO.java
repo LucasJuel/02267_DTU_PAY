@@ -33,4 +33,17 @@ public class MerchantDTO {
         return bankAccountId;
     }
 
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    public void setCpr(String cpr) {
+    this.cpr = cpr;
+    }
+    public void setBankAccountId(String bankAccountId) {
+        this.bankAccountId = bankAccountId;
+    }
 }

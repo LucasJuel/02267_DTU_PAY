@@ -5,7 +5,7 @@ public class PaymentServiceApplication {
     public static void main(String[] args) {
         System.out.println("Starting Payment Service Application...");
         try{
-            Thread.sleep(5000);
+            // Thread.sleep(5000);
             consumer = new PaymentConsumer();
             consumer.startListening();
             Thread.currentThread().join();
