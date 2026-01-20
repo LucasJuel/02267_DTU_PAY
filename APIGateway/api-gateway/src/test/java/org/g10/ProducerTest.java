@@ -15,6 +15,7 @@ import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
 import org.g10.services.MerchantProducer;
 import org.g10.services.PaymentProducer;
+import org.g10.services.ReportingProducer;
 import org.g10.DTO.MerchantDTO;
 import org.g10.DTO.PaymentDTO;
 
@@ -29,6 +30,7 @@ public class ProducerTest {
     private static final String CUSTOMER_QUEUE = "customer.events";
     private static final String MERCHANT_QUEUE = "merchant.events";
     private static final String PAYMENT_QUEUE = "payment.events";
+    private static final String REPORTING_QUEUE = "reporting.requests";
     private static final String QUEUE_NAME = "rabbit.test";
 
     private Connection connection;
@@ -46,6 +48,7 @@ public class ProducerTest {
         channel.queueDeclare(CUSTOMER_QUEUE, true, false, false, null);
         channel.queueDeclare(MERCHANT_QUEUE, true, false, false, null);
         channel.queueDeclare(PAYMENT_QUEUE, true, false, false, null);
+        channel.queueDeclare(REPORTING_QUEUE, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
     }
 
@@ -132,6 +135,27 @@ public class ProducerTest {
         assertNotNull(delivery, "Expected a message to be available on the test queue.");
         String actual = new String(delivery.getBody(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(expected, actual);
+    }
+
+    @When("I request a report for customer with ID {string}")
+    public void i_request_a_report_for_customer_with_id(String string) {
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt(),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            producer.publishReportRequest(string);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Then("a report request event is available on the reporting queue")
+    public void a_report_request_event_is_available_on_the_reporting_queue() throws Exception{
+        String payload = readMessage(REPORTING_QUEUE);
+        JsonObject json = Json.createReader(new StringReader(payload)).readObject();
+        assertEquals("customer-123", json.getString("customerId"));
     }
 
 

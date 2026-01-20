@@ -1,5 +1,7 @@
 package org.g10.endpoints;
 
+import org.g10.DTO.ReportRequestDTO;
+
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -7,6 +9,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import org.g10.services.ReportingProducer;
 
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
@@ -50,6 +54,34 @@ public class CustomerResource extends AbstractResource{
                 .entity("{\"error\": \"Customer lookup is not supported via the api-gateway.\"}")
                 .build();
 
+    }
+
+    @GET
+    @Path("/{customerId}/report")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCustomerReport(@jakarta.ws.rs.PathParam("customerId") String customerId) {
+        System.out.println("Received request to get report for customer with ID: " + customerId);
+        if (customerId == null || customerId.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"customerId is required.\"}")
+                    .build();
+        }
+        try {
+            try (ReportingProducer producer = new ReportingProducer()) {
+                producer.publishReportRequest(customerId);
+                return Response.ok()
+                        .entity("{\"status\": \"queued\"}")
+                        .build();
+            }
+        } catch (java.util.concurrent.TimeoutException e) {
+            return Response.status(Response.Status.REQUEST_TIMEOUT)
+                    .entity("{\"error\": \"Reporting service did not respond in time.\"}")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to generate report: " + e.getMessage() + "\"}")
+                    .build();
+        }
     }
 
 }
