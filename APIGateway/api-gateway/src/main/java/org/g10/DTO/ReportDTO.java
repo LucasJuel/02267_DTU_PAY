@@ -1,9 +1,9 @@
 package org.g10.DTO;
 
-public class ReportRequestDTO {
+public class ReportDTO {
     private String customerId;
 
-    public ReportRequestDTO(String customerId) {
+    public ReportDTO(String customerId) {
         this.customerId = customerId;
     }
 

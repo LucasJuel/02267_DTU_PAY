@@ -1,6 +1,6 @@
 package org.g10.services;
 
-import org.g10.DTO.ReportRequestDTO;
+import org.g10.DTO.ReportDTO;
 
 import com.rabbitmq.client.*;
 import com.google.gson.Gson;
@@ -46,7 +46,7 @@ public class ReportingProducer implements AutoCloseable {
     }
 
     public void publishReportRequest(String customerId) throws IOException {
-        String payload = gson.toJson(new ReportRequestDTO(customerId));
+        String payload = gson.toJson(new ReportDTO(customerId));
         AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                 .contentType("application/json")
                 .deliveryMode(2)

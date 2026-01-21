@@ -1,6 +1,6 @@
 package org.g10.endpoints;
 
-import org.g10.DTO.ReportRequestDTO;
+import org.g10.DTO.ReportDTO;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
