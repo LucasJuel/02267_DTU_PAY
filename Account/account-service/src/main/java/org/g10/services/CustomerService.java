@@ -31,4 +31,8 @@ public class CustomerService {
         return customer;
     }
 
+    public void deregister(String customerId) {
+        storageHandler.removeCustomer(customerId);
+    }
+
 }

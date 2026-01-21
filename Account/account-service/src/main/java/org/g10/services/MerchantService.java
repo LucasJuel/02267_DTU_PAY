@@ -24,6 +24,10 @@ public class MerchantService {
         return merchant;
     }
 
+    public void deregister(String merchantId) {
+        storageHandler.removeMerchant(merchantId);
+    }
+
     public void handleMerchantRegistered(String message) {
         // Implementation for handling merchant registered events
 
