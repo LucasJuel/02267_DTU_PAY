@@ -38,10 +38,10 @@ public class ProducerTest {
     private Channel channel;
     private CustomerProducer customerProducer;
     private MerchantProducer merchantProducer;
-    private PaymentProducer paymentProducer;
+    // private PaymentProducer paymentProducer;
     private CustomerDTO customer;
     private MerchantDTO merchant;
-    private PaymentDTO payment;
+    // private PaymentDTO payment;
     private String returnedId;
 
     @Before
@@ -74,13 +74,13 @@ public class ProducerTest {
                 MERCHANT_QUEUE
         );
 
-        paymentProducer = new PaymentProducer(
-                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
-                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
-                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
-                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                PAYMENT_QUEUE
-        );
+        // paymentProducer = new PaymentProducer(
+        //         getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+        //         getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+        //         getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+        //         getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+        //         PAYMENT_QUEUE
+        // );
     }
 
 
@@ -170,11 +170,11 @@ public class ProducerTest {
         }
     }
 
-    private String readMessage(String queueName) throws Exception {
-        var delivery = channel.basicGet(queueName, false);
-        assertNotNull(delivery, "Expected a message to be available on the queue.");
-        return new String(delivery.getBody(), StandardCharsets.UTF_8);
-    }
+    // private String readMessage(String queueName) throws Exception {
+    //     var delivery = channel.basicGet(queueName, false);
+    //     assertNotNull(delivery, "Expected a message to be available on the queue.");
+    //     return new String(delivery.getBody(), StandardCharsets.UTF_8);
+    // }
 
     private static String getEnv(String key, String fallback) {
         String value = System.getenv(key);

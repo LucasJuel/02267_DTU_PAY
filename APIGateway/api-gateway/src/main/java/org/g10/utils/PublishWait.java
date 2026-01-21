@@ -31,7 +31,7 @@ public class PublishWait {
                     .build();
         
             channel.basicPublish("", queue, props, payload.getBytes(StandardCharsets.UTF_8));
-            String response = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
+            String response = responseFuture.get(10, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             channel.basicCancel(consumerTag);
             this.response = response;
         } catch (java.util.concurrent.TimeoutException e){
