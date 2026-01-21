@@ -46,12 +46,12 @@ public class StorageHandler {
         return merchantStorage.get(merchantId);
     }
 
-    public void removeCustomer(String customerId) {
-        customerStorage.remove(customerId);
+    public CustomerDTO removeCustomer(String customerId) {
+        return customerStorage.remove(customerId);
     }
 
-    public void removeMerchant(String merchantId) {
-        merchantStorage.remove(merchantId);
+    public MerchantDTO removeMerchant(String merchantId) {
+        return merchantStorage.remove(merchantId);
     }
 
     public void clearAll() {

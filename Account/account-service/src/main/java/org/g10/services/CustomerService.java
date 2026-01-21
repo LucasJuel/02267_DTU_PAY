@@ -31,8 +31,15 @@ public class CustomerService {
         return customer;
     }
 
-    public void deregister(String customerId) {
-        storageHandler.removeCustomer(customerId);
+    public String deregister(String customerId) {
+        try {
+            storageHandler.removeCustomer(customerId);
+            return "Customer deregistered successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+        
+        
     }
 
 }

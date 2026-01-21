@@ -49,6 +49,8 @@ public class AccountTest {
         channel = connection.createChannel();
         channel.queueDeclare("account.customer", true, false, false, null);
         channel.queueDeclare("account.merchant", true, false, false, null);
+        channel.queueDeclare("account.customer.deregister", true, false, false, null);
+        channel.queueDeclare("account.merchant.deregister", true, false, false, null);
         thread = new Thread(() -> {
             app = new AccountServiceApplication();
             AccountServiceApplication.main(new String[]{});
@@ -226,6 +228,91 @@ public class AccountTest {
             e.printStackTrace();
         }
     }
+
+    @When("I deregister the customer with the customer id with the account service")
+    public void iDeregisterTheCustomerWithTheCustomerIdWithTheAccountService() {
+        try {
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                    future.complete(new String(message.getBody()));
+                }
+            }, tag -> {
+            });
+            AMQP.BasicProperties props = new AMQP.BasicProperties
+                    .Builder()
+                    .correlationId(correlationId)
+                    .replyTo(replyQueue)
+                    .build();
+            String payload = String.format("{\"customerId\":\"%s\"}", customer_result);
+            channel.basicPublish("", "account.customer.deregister", props, payload.getBytes());
+            String response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            System.out.println("Received deregister customer response: " + response);
+            channel.basicCancel(consumerTag);
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Then("there is a deregistration message in the account queue with the customer details")
+    public void thereIsADeregistrationMessageInTheAccountQueueWithTheCustomerDetails() {
+        try {
+            Thread.sleep(2000); // Wait for the message to be processed
+            consumer = app.getConsumer();
+            CustomerService service = consumer.getCustomerService();
+            // Verify that the customer was removed from the service
+            CustomerDTO customer1 = service.getCustomer(customer_result);
+            System.out.println("Customer after deregistration: " + customer1);
+            assertNull(customer1, "Customer should be null after deregistration");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @When("I deregister the merchant with the merchant id with the account service")
+    public void iDeregisterTheMerchantWithTheMerchantIdWithTheAccountService() {
+        try {
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                    future.complete(new String(message.getBody()));
+                }
+            }, tag -> {
+            });
+            AMQP.BasicProperties props = new AMQP.BasicProperties
+                    .Builder()
+                    .correlationId(correlationId)
+                    .replyTo(replyQueue)
+                    .build();
+            String payload = String.format("{\"merchantId\":\"%s\"}", merchant_result);
+            channel.basicPublish("", "account.merchant.deregister", props, payload.getBytes());
+            String response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            System.out.println("Received deregister merchant response: " + response);
+            channel.basicCancel(consumerTag);
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Then("there is a deregistration message in the account queue with the merchant details")
+    public void thereIsADeregistrationMessageInTheAccountQueueWithTheMerchantDetails() {
+        try {
+            Thread.sleep(2000); // Wait for the message to be processed
+            consumer = app.getConsumer();
+            MerchantService service = consumer.getMerchantService();
+            // Verify that the merchant was removed from the service
+            MerchantDTO merchant1 = service.getMerchant(merchant_result);
+            System.out.println("Merchant after deregistration: " + merchant1);
+            assertNull(merchant1, "Merchant should be null after deregistration");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // @After
     // public void teardown() throws IOException, TimeoutException {
     //     if (channel != null && channel.isOpen()) {
