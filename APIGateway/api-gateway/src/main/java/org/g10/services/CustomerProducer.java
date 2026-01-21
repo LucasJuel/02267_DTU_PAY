@@ -12,11 +12,11 @@ import java.util.concurrent.TimeoutException;
 import org.g10.DTO.CustomerDTO;
 
 public class CustomerProducer implements AutoCloseable {
-    private static final String DEFAULT_HOST = "rabbitmq";
+    private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
-    private static final String DEFAULT_QUEUE = "customer.events";
+    private static final String DEFAULT_QUEUE = "account.customer";
 
     private final Connection connection;
     private final Channel channel;

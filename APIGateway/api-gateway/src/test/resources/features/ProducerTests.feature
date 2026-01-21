@@ -1,16 +1,21 @@
 Feature: RabbitMQ producers
 
-  Scenario: Customer producer publishes a customer event
+  Scenario: Customer is registered with DTU Pay
     Given a RabbitMQ connection
-    When I publish a customer registration event
-    Then the customer event is available on the customer queue
+    And a customer with first name "Alice", last name "Smith" and cpr "123456-7890"
+    And the customer have a bank account with the bank account id "cust-account-123"
+    When I make a request to register the customer in DTU Pay
+    Then the customer is registered successfully
 
-  Scenario: Merchant producer publishes a merchant event
+  Scenario: Merchant is registered with DTU Pay
     Given a RabbitMQ connection
-    When I publish a merchant registration event
-    Then the merchant event is available on the merchant queue
+    And a merchant with first name "Bob" and last name "Johnson" and cpr "098765-4321"
+    And the merchant have a bank account with the bank account id "merch-account-456"
+    When I make a request to register the merchant in DTU Pay
+    Then the merchant is registered successfully
 
-  Scenario: Payment producer publishes a payment event
-    Given a RabbitMQ connection
-    When I publish a payment request event
-    Then the payment event is available on the payment queue
+  Scenario: Payment is initiated with DTU Pay
+  Given a RabbitMQ connection
+  And a payment with amount 100 is initiated by merchant with id "merch-001" from customer with id "cust-001"
+  When I make a request to initiate the payment in DTU Pay
+  Then the payment is initiated successfully
