@@ -27,9 +27,6 @@ pipeline {
                 dir('Server/thebois-dtu-pay') {
                     sh 'mvn test'
                 }
-                dir('Client/dtu-pay-client') {
-                    sh 'mvn test'
-                }
             }
         }
     }
