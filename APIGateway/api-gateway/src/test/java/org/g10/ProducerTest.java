@@ -143,11 +143,20 @@ public class ProducerTest {
         } catch (Exception e){
             throw new RuntimeException(e);
         }
+        
     }
 
-    @Given("a payment with amount {int} is initiated by merchant with id {string} from customer with id {string}")
-    public void a_payment_with_amount_is_initiated_by_merchant_with_id_from_customer_with_id(Integer int1, String string, String string2) {       
-        payment = new PaymentDTO(string2, string, int1.floatValue(), "Test payment");
+    @When("I publish {string} to the rabbit test queue")
+    public void iPublishToTheRabbitTestQueue(String message) throws Exception {
+        channel.basicPublish("", QUEUE_NAME, null, message.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    @Then("I can consume {string} from the rabbit test queue")
+    public void iCanConsumeFromTheRabbitTestQueue(String expected) throws Exception {
+        var delivery = channel.basicGet(QUEUE_NAME, true);
+        assertNotNull(delivery, "Expected a message to be available on the test queue.");
+        String actual = new String(delivery.getBody(), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(expected, actual);
     }
 
 
