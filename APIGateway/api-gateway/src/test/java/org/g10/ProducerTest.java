@@ -58,7 +58,6 @@ public class ProducerTest {
         channel.queueDeclare(PAYMENT_QUEUE, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
 
-
         customerProducer = new CustomerProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
@@ -73,6 +72,9 @@ public class ProducerTest {
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 MERCHANT_QUEUE
         );
+
+        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT) + "\n");
+        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST) + "\n");
 
         // paymentProducer = new PaymentProducer(
         //         getEnv("RABBITMQ_HOST", DEFAULT_HOST),
