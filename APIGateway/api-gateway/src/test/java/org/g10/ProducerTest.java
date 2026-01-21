@@ -73,8 +73,8 @@ public class ProducerTest {
                 MERCHANT_QUEUE
         );
 
-        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT) + "\n");
-        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST) + "\n");
+        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT));
+        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST));
 
         // paymentProducer = new PaymentProducer(
         //         getEnv("RABBITMQ_HOST", DEFAULT_HOST),
