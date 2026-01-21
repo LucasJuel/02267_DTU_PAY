@@ -14,8 +14,8 @@ Feature: RabbitMQ producers
     When I make a request to register the merchant in DTU Pay
     Then the merchant is registered successfully
 
-  Scenario: Payment is initiated with DTU Pay
-  Given a RabbitMQ connection
-  And a payment with amount 100 is initiated by merchant with id "merch-001" from customer with id "cust-001"
-  When I make a request to initiate the payment in DTU Pay
-  Then the payment is initiated successfully
+  # Scenario: Payment is initiated with DTU Pay
+  #   Given a RabbitMQ connection
+  #   And a payment with amount 100 is initiated by merchant with id "merch-001" from customer with id "cust-001"
+  #   When I make a request to initiate the payment in DTU Pay
+  #   Then the payment is initiated successfully

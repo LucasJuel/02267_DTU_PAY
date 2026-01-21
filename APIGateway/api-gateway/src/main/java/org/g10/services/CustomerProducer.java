@@ -4,10 +4,12 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.CustomerDTO;
 
@@ -45,13 +47,32 @@ public class CustomerProducer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public void publishCustomerRegistered(CustomerDTO customer) throws IOException {
-        String payload = toJson(customer);
-        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                .contentType("application/json")
-                .deliveryMode(2)
-                .build();
-        channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+    public String publishCustomerRegistered(CustomerDTO customer) throws IOException {
+        try{
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String payload = toJson(customer);
+            String replyQueue = channel.queueDeclare("account.customer.reply", false, true, true, null).getQueue();
+            CompletableFuture<String> responseFuture = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, delivery) -> {
+                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                responseFuture.complete(message);
+            }, tag -> {});
+
+            AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
+                    .contentType("application/json")
+                    .correlationId(correlationId)
+                    .deliveryMode(2)
+                    .replyTo(replyQueue)
+                    .build();
+        
+            channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+            String response = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
+            System.out.println("Received response: " + response);
+            channel.basicCancel(consumerTag);
+            return response;
+        } catch(Exception e){
+            return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
+        }
     }
 
     @Override
