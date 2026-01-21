@@ -3,6 +3,7 @@ package org.g10.endpoints;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -50,6 +51,28 @@ public class CustomerResource extends AbstractResource{
                 .entity("{\"error\": \"Customer lookup is not supported via the api-gateway.\"}")
                 .build();
 
+    }
+
+    @DELETE
+    @Path("/{customerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteCustomer(@jakarta.ws.rs.PathParam("customerId") String customerId) {
+        System.out.println("Received request to delete customer with ID: " + customerId);
+        if (customerId == null || customerId.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"customerId is required.\"}")
+                    .build();
+        }
+        return handleRegister(customerId, () -> {
+            try (CustomerProducer producer = new CustomerProducer()) {
+                String response = producer.publishCustomerDeleted(customerId);
+                return Response.accepted()
+                        .entity(response)
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }
