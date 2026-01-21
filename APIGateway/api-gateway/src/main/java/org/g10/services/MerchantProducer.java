@@ -1,15 +1,16 @@
 package org.g10.services;
 
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.MerchantDTO;
+import org.g10.utils.PublishWait;
+
 
 public class MerchantProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
@@ -17,6 +18,7 @@ public class MerchantProducer implements AutoCloseable {
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE = "merchant.events";
+    private static final String MERCHANT_REPLY_QUEUE = "account.merchant.reply";
 
     private final Connection connection;
     private final Channel channel;
@@ -45,13 +47,18 @@ public class MerchantProducer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public void publishMerchantRegistered(MerchantDTO merchant) throws IOException {
-        String payload = toJson(merchant);
-        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                .contentType("application/json")
-                .deliveryMode(2)
-                .build();
-        channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+    public String publishMerchantRegistered(MerchantDTO merchant) throws IOException {
+        try{
+            PublishWait publishWait = new PublishWait(
+                    queueName,
+                    MERCHANT_REPLY_QUEUE,
+                    channel,
+                    merchant
+            );
+            return publishWait.getResponse();
+        } catch (Exception e){
+            return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
+        }
     }
 
     @Override
@@ -61,23 +68,6 @@ public class MerchantProducer implements AutoCloseable {
         }
         if (connection != null && connection.isOpen()) {
             connection.close();
-        }
-    }
-
-    private static String toJson(MerchantDTO merchant) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        addOrNull(builder, "firstName", merchant.getFirstName());
-        addOrNull(builder, "lastName", merchant.getLastName());
-        addOrNull(builder, "cpr", merchant.getCpr());
-        addOrNull(builder, "bankAccountId", merchant.getBankAccountId());
-        return builder.build().toString();
-    }
-
-    private static void addOrNull(JsonObjectBuilder builder, String key, String value) {
-        if (value == null) {
-            builder.addNull(key);
-        } else {
-            builder.add(key, value);
         }
     }
 

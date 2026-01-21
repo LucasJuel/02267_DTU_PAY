@@ -27,7 +27,6 @@ public class CustomerResource extends AbstractResource{
         return handleRegister(request, () -> {
             try (CustomerProducer producer = new CustomerProducer()) {
                 String response = producer.publishCustomerRegistered(request);
-                // I want to wait for answer
                 return Response.accepted()
                         .entity(response)
                         .build();

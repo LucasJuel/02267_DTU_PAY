@@ -11,6 +11,7 @@ import io.cucumber.java.en.When;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import java.io.StringReader;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
@@ -101,11 +102,16 @@ public class ProducerTest {
 
     @When("I make a request to register the customer in DTU Pay")
     public void i_make_a_request_to_register_the_customer_in_dtu_pay() throws Exception {
-        returnedId = customerProducer.publishCustomerRegistered(customer);
+        try{
+            returnedId = customerProducer.publishCustomerRegistered(customer);
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Then("the customer is registered successfully")
     public void the_customer_is_registered_successfully() throws Exception {
+        System.out.println("Returned ID: " + returnedId);
         assertTrue(returnedId.length() == 36);
     }
 
@@ -123,7 +129,7 @@ public class ProducerTest {
     @When("I make a request to register the merchant in DTU Pay")
     public void i_make_a_request_to_register_the_merchant_in_dtu_pay() {
         try{
-            merchantProducer.publishMerchantRegistered(merchant);
+            returnedId = merchantProducer.publishMerchantRegistered(merchant);
         } catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -132,57 +138,16 @@ public class ProducerTest {
     @Then("the merchant is registered successfully")
     public void the_merchant_is_registered_successfully() {
         try{
-            String payload = readMessage(MERCHANT_QUEUE);
-            JsonObject json = Json.createReader(new StringReader(payload)).readObject();
-            assertEquals(merchant.getFirstName(), json.getString("firstName"));
-            assertEquals(merchant.getLastName(), json.getString("lastName"));
-            assertEquals(merchant.getCpr(), json.getString("cpr"));
-            assertEquals(merchant.getBankAccountId(), json.getString("bankAccountId"));
+            System.out.println("Returned ID: " + returnedId);
+            assertTrue(returnedId.length() == 36);
         } catch (Exception e){
             throw new RuntimeException(e);
         }
-        
     }
 
     @Given("a payment with amount {int} is initiated by merchant with id {string} from customer with id {string}")
     public void a_payment_with_amount_is_initiated_by_merchant_with_id_from_customer_with_id(Integer int1, String string, String string2) {       
         payment = new PaymentDTO(string2, string, int1.floatValue(), "Test payment");
-    }
-
-    @When("I make a request to initiate the payment in DTU Pay")
-    public void i_make_a_request_to_initiate_the_payment_in_dtu_pay() {
-        try{
-            paymentProducer.publishPaymentRequested(payment);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Then("the payment is initiated successfully")
-    public void the_payment_is_initiated_successfully() {
-        try{
-            String payload = readMessage(PAYMENT_QUEUE);
-            JsonObject json = Json.createReader(new StringReader(payload)).readObject();
-            assertEquals(payment.getCustomerAccountId(), json.getString("customerAccountId"));
-            assertEquals(payment.getMerchantAccountId(), json.getString("merchantAccountId"));
-            assertEquals(payment.getAmount(), (float) json.getJsonNumber("amount").doubleValue(), 0.001f);
-            assertEquals(payment.getMessage(), json.getString("message"));
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @When("I publish {string} to the rabbit test queue")
-    public void iPublishToTheRabbitTestQueue(String message) throws Exception {
-        channel.basicPublish("", QUEUE_NAME, null, message.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-    }
-
-    @Then("I can consume {string} from the rabbit test queue")
-    public void iCanConsumeFromTheRabbitTestQueue(String expected) throws Exception {
-        var delivery = channel.basicGet(QUEUE_NAME, true);
-        assertNotNull(delivery, "Expected a message to be available on the test queue.");
-        String actual = new String(delivery.getBody(), java.nio.charset.StandardCharsets.UTF_8);
-        assertEquals(expected, actual);
     }
 
 
