@@ -51,3 +51,13 @@ Feature: Account service unit behavior
     Then the stored merchant matches the registration
     When I deregister the merchant with the merchant id
     Then the merchant is no longer in storage
+
+  Scenario: Deregister non-existent customer
+    Given a clean account storage
+    When I attempt to deregister a customer with id "non-existent-id"
+    Then the deregistration completes without error
+
+  Scenario: Deregister non-existent merchant
+    Given a clean account storage
+    When I attempt to deregister a merchant with id "non-existent-id"
+    Then the deregistration completes without error

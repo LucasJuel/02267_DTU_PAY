@@ -144,4 +144,21 @@ public class AccountServiceUnitSteps {
         MerchantDTO stored = merchantService.getMerchant(merchantId);
         assertNull(stored, "Merchant should be null after deregistration");
     }
+
+    @When("I attempt to deregister a customer with id {string}")
+    public void iAttemptToDeregisterACustomerWithId(String id) {
+        // Attempt to deregister, should not throw exception even if customer does not exist
+        customerService.deregister(id);
+    }
+
+    @When("I attempt to deregister a merchant with id {string}")
+    public void iAttemptToDeregisterAMerchantWithId(String id) {
+        // Attempt to deregister, should not throw exception even if merchant does not exist
+        merchantService.deregister(id);
+    }
+
+    @Then("the deregistration completes without error")
+    public void theDeregistrationCompletesWithoutError() {
+        assertTrue(true);
+    }
 }

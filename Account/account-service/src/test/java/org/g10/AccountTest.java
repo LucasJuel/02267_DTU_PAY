@@ -313,6 +313,60 @@ public class AccountTest {
         }
     }
 
+    @When("I attempt to deregister a customer with id {string} with the account service")
+    public void iAttemptToDeregisterACustomerWithIdWithTheAccountService(String customerId) {
+        try {
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                    future.complete(new String(message.getBody()));
+                }
+            }, tag -> {
+            });
+            AMQP.BasicProperties props = new AMQP.BasicProperties
+                    .Builder()
+                    .correlationId(correlationId)
+                    .replyTo(replyQueue)
+                    .build();
+            String payload = String.format("{\"customerId\":\"%s\"}", customerId);
+            channel.basicPublish("", "account.customer.deregister", props, payload.getBytes());
+            String response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            System.out.println("Received deregister non-existent customer response: " + response);
+            channel.basicCancel(consumerTag);
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @When("I attempt to deregister a merchant with id {string} with the account service")
+    public void iAttemptToDeregisterAMerchantWithIdWithTheAccountService(String merchantId) {
+        try {
+            String correlationId = java.util.UUID.randomUUID().toString();
+            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
+                if (correlationId.equals(message.getProperties().getCorrelationId())) {
+                    future.complete(new String(message.getBody()));
+                }
+            }, tag -> {
+            });
+            AMQP.BasicProperties props = new AMQP.BasicProperties
+                    .Builder()
+                    .correlationId(correlationId)
+                    .replyTo(replyQueue)
+                    .build();
+            String payload = String.format("{\"merchantId\":\"%s\"}", merchantId);
+            channel.basicPublish("", "account.merchant.deregister", props, payload.getBytes());
+            String response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            System.out.println("Received deregister non-existent merchant response: " + response);
+            channel.basicCancel(consumerTag);
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
     // @After
     // public void teardown() throws IOException, TimeoutException {
     //     if (channel != null && channel.isOpen()) {

@@ -34,3 +34,13 @@ Feature: Account tests
     Then there is a message in the account queue with the merchant details
     When I deregister the merchant with the merchant id with the account service
     Then there is a deregistration message in the account queue with the merchant details
+
+  Scenario: Deregister a non-existent customer account
+    Given the account service is running
+    When I attempt to deregister a customer with id "non-existent-customer-id" with the account service
+    Then the deregistration completes without error
+
+  Scenario: Deregister a non-existent merchant account
+    Given the account service is running
+    When I attempt to deregister a merchant with id "non-existent-merchant-id" with the account service
+    Then the deregistration completes without error
