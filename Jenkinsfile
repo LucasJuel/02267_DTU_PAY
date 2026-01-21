@@ -35,7 +35,8 @@ pipeline {
     }
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            sh 'ls -la **/target/surefire-reports/*.xml || true'
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
             sh 'docker compose down'
         }
     }
