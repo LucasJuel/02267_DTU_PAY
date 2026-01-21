@@ -33,4 +33,8 @@ public class MerchantDTO {
         return bankAccountId;
     }
 
+    public void setBankAccountId(String bankAccountId) {
+        this.bankAccountId = bankAccountId;
+    }
+
 }

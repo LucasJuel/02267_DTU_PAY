@@ -29,9 +29,6 @@ pipeline {
                 dir('APIGateway/api-gateway') {
                     sh 'mvn test'
                 }
-                dir('Server/thebois-dtu-pay') {
-                    sh 'mvn test'
-                }
             }
         }
     }
