@@ -34,8 +34,25 @@ public class PublishWait {
             String response = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             channel.basicCancel(consumerTag);
             this.response = response;
-        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e){
-            throw new RuntimeException("Failed to publish and wait for response: " + e.getMessage(), e);
+        } catch (java.util.concurrent.TimeoutException e){
+            String errorMsg = String.format("Timeout waiting for response from queue '%s' after 5 seconds", queue);
+            throw new RuntimeException(errorMsg, e);
+        } catch (InterruptedException e){
+            Thread.currentThread().interrupt();
+            String errorMsg = String.format("Thread interrupted while waiting for response from queue '%s'", queue);
+            throw new RuntimeException(errorMsg, e);
+        } catch (java.util.concurrent.ExecutionException e){
+            String errorMsg = String.format("Execution failed while waiting for response from queue '%s': %s", 
+                queue, e.getCause() != null ? e.getCause().toString() : e.getClass().getName());
+            throw new RuntimeException(errorMsg, e);
+        } catch (IOException e){
+            String errorMsg = String.format("I/O error during message publish/consume on queue '%s': %s", 
+                queue, e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+            throw new RuntimeException(errorMsg, e);
+        } catch (Exception e){
+            String errorMsg = String.format("Unexpected error during publish and wait on queue '%s': %s", 
+                queue, e.getMessage() != null ? e.getMessage() : e.getClass().getName());
+            throw new RuntimeException(errorMsg, e);
         }
        
     }
