@@ -31,6 +31,15 @@ pipeline {
                 }
             }
         }
+        stage('4. Run Maven Tests (Inside Containers)') {
+            steps {
+                sh '''
+                docker compose exec account-service mvn test
+                docker compose exec payment-service mvn test
+                docker compose exec api-gateway mvn test
+                '''
+            }
+        }
     }
     post {
         always {
