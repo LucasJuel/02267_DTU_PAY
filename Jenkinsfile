@@ -32,7 +32,7 @@ pipeline {
     }
     post {
         always {
-            sh 'ls -la **/target/surefire-reports/*.xml || true'
+            sh "find . -path '*/target/surefire-reports/*.xml' -print || true"
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
             sh 'docker compose down'
         }
