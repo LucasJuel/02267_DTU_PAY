@@ -13,6 +13,11 @@ pipeline {
                 echo "System is healthy and ready for testing."
             }
         }
+        stage('2.5 Cleanup Old Test Reports') {
+            steps {
+                sh "find . -path '*/target/surefire-reports/*.xml' -delete || true"
+            }
+        }
         stage('3. Run Maven Tests (All Services)') {
             steps {
                 dir('Account/account-service') {
