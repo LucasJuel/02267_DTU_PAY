@@ -19,3 +19,8 @@ Feature: RabbitMQ producers
     Given a RabbitMQ connection
     When I request a report for customer with ID "customer-123"
     Then a report request event is available on the reporting queue
+
+  Scenario: Reporting producer requests a merchant report
+    Given a RabbitMQ connection
+    When I request a report for merchant with ID "merchant-456"
+    Then a report request event is available on the reporting queue

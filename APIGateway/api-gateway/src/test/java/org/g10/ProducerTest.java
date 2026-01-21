@@ -32,6 +32,7 @@ public class ProducerTest {
     private static final String PAYMENT_QUEUE = "payment.events";
     private static final String REPORTING_QUEUE = "reporting.requests";
     private static final String QUEUE_NAME = "rabbit.test";
+    private String EXPECTED_MESSAGE;
 
     private Connection connection;
     private Channel channel;
@@ -56,14 +57,15 @@ public class ProducerTest {
     public void iPublishACustomerRegistrationEvent() throws Exception {
         CustomerDTO customer = new CustomerDTO("Ada", "Lovelace", "111111-1111", "cust-account-1");
         try (CustomerProducer producer = new CustomerProducer(
-                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
-                getEnvInt(),
-                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
-                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                CUSTOMER_QUEUE
+            getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+            getEnvInt(),
+            getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+            getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+            CUSTOMER_QUEUE
         )) {
             producer.publishCustomerRegistered(customer);
         }
+        System.out.println("Published customer: " + customer);
     }
 
     @Then("the customer event is available on the customer queue")
@@ -139,6 +141,7 @@ public class ProducerTest {
 
     @When("I request a report for customer with ID {string}")
     public void i_request_a_report_for_customer_with_id(String string) {
+        EXPECTED_MESSAGE = string;
         try (ReportingProducer producer = new ReportingProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
                 getEnvInt(),
@@ -151,11 +154,28 @@ public class ProducerTest {
             e.printStackTrace();
         }
     }
+
+    @When("I request a report for merchant with ID {string}")
+    public void i_request_a_report_for_merchant_with_id(String string) {
+        EXPECTED_MESSAGE = string;
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt(),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            producer.publishReportRequest(string);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Then("a report request event is available on the reporting queue")
     public void a_report_request_event_is_available_on_the_reporting_queue() throws Exception{
         String payload = readMessage(REPORTING_QUEUE);
         JsonObject json = Json.createReader(new StringReader(payload)).readObject();
-        assertEquals("customer-123", json.getString("customerId"));
+        assertEquals(EXPECTED_MESSAGE, json.getString("customerId"));
     }
 
 

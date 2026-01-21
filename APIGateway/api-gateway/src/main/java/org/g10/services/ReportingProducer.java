@@ -23,7 +23,13 @@ public class ReportingProducer implements AutoCloseable {
     private final Gson gson = new Gson();
 
     public ReportingProducer() throws IOException, TimeoutException {
-        this(DEFAULT_HOST, DEFAULT_PORT, DEFAULT_USERNAME, DEFAULT_PASSWORD, DEFAULT_QUEUE);
+        this(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                getEnv("RABBITMQ_REPORTING_QUEUE", DEFAULT_QUEUE)
+        );
     }
 
     public ReportingProducer(String host, int port, String username, String password, String queueName)
@@ -46,6 +52,23 @@ public class ReportingProducer implements AutoCloseable {
                 .deliveryMode(2)
                 .build();
         channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String getEnv(String key, String fallback) {
+        String value = System.getenv(key);
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private static int getEnvInt(String key, int fallback) {
+        String value = System.getenv(key);
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     @Override
