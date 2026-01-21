@@ -37,3 +37,17 @@ Feature: Account service unit behavior
     When I register a customer with first name "Clara", last name "Clausen", CPR "567890-1234", and bank account "account-789"
     And I register a merchant with first name "Dan", last name "Dahl", CPR "222333-4444", and bank account "account-999"
     Then customer and merchant ids do not resolve across stores
+
+  Scenario: Deregister customer
+    Given a clean account storage
+    When I register a customer with first name "Eva", last name "Eriksen", CPR "111222-3333", and bank account "account-111"
+    Then the stored customer matches the registration
+    When I deregister the customer with the customer id
+    Then the customer is no longer in storage
+
+  Scenario: Deregister merchant
+    Given a clean account storage
+    When I register a merchant with first name "Frank", last name "Frederiksen", CPR "444555-6666", and bank account "account-222"
+    Then the stored merchant matches the registration
+    When I deregister the merchant with the merchant id
+    Then the merchant is no longer in storage

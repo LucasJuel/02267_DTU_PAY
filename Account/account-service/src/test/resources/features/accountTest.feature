@@ -18,3 +18,19 @@ Feature: Account tests
     When I register the merchants with the account service
     Then there is a message in the account queue for "Benny" with the merchant details
     And there is a message in the account queue for "Clara" with the merchant details
+
+  Scenario: Deregister a customer account
+    Given a customer with name "Eva", last name "Eriksen", and CPR "111222-3333"
+    And the account service is running
+    When I register the customer with the account service
+    Then there is a message in the account queue with the customer details
+    When I deregister the customer with the customer id with the account service
+    Then there is a deregistration message in the account queue with the customer details
+
+  Scenario: Deregister a merchant account
+    Given a merchant with name "Frank", last name "Frederiksen", and CPR "444555-6666"
+    And the account service is running
+    When I register the merchant with the account service
+    Then there is a message in the account queue with the merchant details
+    When I deregister the merchant with the merchant id with the account service
+    Then there is a deregistration message in the account queue with the merchant details
