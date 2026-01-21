@@ -1,12 +1,12 @@
 package org.g10.services;
 
 import org.g10.DTO.ReportDTO;
+import org.g10.utils.PublishWait;
 
 import com.rabbitmq.client.*;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 
@@ -16,6 +16,7 @@ public class ReportingProducer implements AutoCloseable {
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE = "reporting.requests";
+    private static final String REPORT_REPLY_QUEUE = "reporting.reply";
 
     private final Connection connection;
     private final Channel channel;
@@ -34,6 +35,7 @@ public class ReportingProducer implements AutoCloseable {
 
     public ReportingProducer(String host, int port, String username, String password, String queueName)
             throws IOException, TimeoutException {
+        this.queueName = queueName;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(host);
         factory.setPort(port);
@@ -41,17 +43,22 @@ public class ReportingProducer implements AutoCloseable {
         factory.setPassword(password);
         this.connection = factory.newConnection();
         this.channel = connection.createChannel();
-        this.queueName = queueName;
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public void publishReportRequest(String customerId) throws IOException {
-        String payload = gson.toJson(new ReportDTO(customerId));
-        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                .contentType("application/json")
-                .deliveryMode(2)
-                .build();
-        channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+    public String publishReportRequest(ReportDTO report) throws IOException {
+        try{
+            PublishWait publishWait = new PublishWait(
+                this.queueName,
+                REPORT_REPLY_QUEUE,
+                this.channel,
+                report
+            );
+            return publishWait.getResponse();
+        } catch (Exception e){
+            e.printStackTrace();
+            return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
+        }
     }
 
     private static String getEnv(String key, String fallback) {

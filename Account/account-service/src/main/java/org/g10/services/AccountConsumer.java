@@ -31,7 +31,6 @@ public class AccountConsumer implements AutoCloseable {
     private final Gson gson = new Gson();
     private final CustomerService customerService = new CustomerService();
     private final MerchantService merchantService = new MerchantService();
-    private final ReportingService reportingService = new ReportingService();
 
 
     public AccountConsumer() throws IOException, TimeoutException {
@@ -102,29 +101,11 @@ public class AccountConsumer implements AutoCloseable {
                 e.printStackTrace();
             }
         };
-        DeliverCallback reportingCallback = (consumerTag, delivery) -> {
-            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [REPORTING] Received '" + message + "'");
-            try {
-                // Assuming message contains some identifier for the report, e.g., customerId
-                String customerId = message;
-                String response = gson.toJson(reportingService.getAllPayments());
-                String replyTo = delivery.getProperties().getReplyTo();
-                if (replyTo != null && !replyTo.isBlank()) {
-                    String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println(" [REPORTING] Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
-                    sendResponse(channel, replyTo, correlationId, response);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        };
+        
 
         channel.basicConsume(customerQueue, true, customerCallback, consumerTag -> {
         });
         channel.basicConsume(merchantQueue, true, merchantCallback, consumerTag -> {
-        });
-        channel.basicConsume(reportingQueue, true, reportingCallback, consumerTag -> {
         });
 
     }

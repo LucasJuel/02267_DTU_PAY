@@ -1,9 +1,7 @@
 package org.g10.services;
 
-import dtu.ws.fastmoney.Account;
 import dtu.ws.fastmoney.BankService;
 import dtu.ws.fastmoney.BankService_Service;
-import jakarta.ws.rs.core.Response;
 import org.g10.DTO.PaymentDTO;
 import org.g10.utils.StorageHandler;
 

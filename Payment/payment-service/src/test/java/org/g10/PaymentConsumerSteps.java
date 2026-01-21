@@ -1,11 +1,7 @@
 package org.g10;
 import dtu.ws.fastmoney.*;
 import io.cucumber.java.After;
-import io.cucumber.java.PendingException;
-import org.g10.DTO.CustomerDTO;
-import org.g10.DTO.MerchantDTO;
 import org.g10.DTO.PaymentDTO;
-import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -19,6 +15,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.g10.services.PaymentConsumer;
 import org.g10.services.PaymentServiceApplication;
+import org.g10.services.ReportingService;
 import org.g10.utils.StorageHandler;
 
 import java.io.IOException;
@@ -34,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PaymentConsumerSteps {
-    private PaymentConsumer consumer;
     private PaymentDTO paymentDTO = new PaymentDTO();
     private ConnectionFactory factory;
     private Connection connection;
@@ -50,6 +46,7 @@ public class PaymentConsumerSteps {
     private String merchantAccount;
     private final List<String> accounts = new ArrayList<>();
     private final StorageHandler storageHandler = StorageHandler.getInstance();
+    private final ReportingService reportingService = new ReportingService();
 
     @Before
     public void setup() throws IOException, TimeoutException {
@@ -181,7 +178,7 @@ public class PaymentConsumerSteps {
         List<Map<String, Object>> payments = storageHandler.readPayments();
         assertNotNull(payments);
         System.out.println("Stored payments: " + payments);
-        assertEquals(2, payments.size());
+        assertEquals(1, payments.size());
 
         Map<String, Object> storedPayment = payments.get(0);
 

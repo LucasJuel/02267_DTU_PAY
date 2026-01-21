@@ -55,33 +55,4 @@ public class CustomerResource extends AbstractResource{
                 .build();
 
     }
-
-    @GET
-    @Path("/{customerId}/report")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getCustomerReport(@jakarta.ws.rs.PathParam("customerId") String customerId) {
-        System.out.println("Received request to get report for customer with ID: " + customerId);
-        if (customerId == null || customerId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"customerId is required.\"}")
-                    .build();
-        }
-        try {
-            try (ReportingProducer producer = new ReportingProducer()) {
-                producer.publishReportRequest(customerId);
-                return Response.ok()
-                        .entity("{\"status\": \"queued\"}")
-                        .build();
-            }
-        } catch (java.util.concurrent.TimeoutException e) {
-            return Response.status(Response.Status.REQUEST_TIMEOUT)
-                    .entity("{\"error\": \"Reporting service did not respond in time.\"}")
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Failed to generate report: " + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
 }
