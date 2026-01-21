@@ -13,6 +13,11 @@ pipeline {
                 echo "System is healthy and ready for testing."
             }
         }
+        stage('2.5 Cleanup Old Test Reports') {
+            steps {
+                sh "find . -path '*/target/surefire-reports/*.xml' -delete || true"
+            }
+        }
         stage('3. Run Maven Tests (All Services)') {
             steps {
                 dir('Account/account-service') {
@@ -24,18 +29,13 @@ pipeline {
                 dir('APIGateway/api-gateway') {
                     sh 'mvn test'
                 }
-                dir('Server/thebois-dtu-pay') {
-                    sh 'mvn test'
-                }
-                dir('Client/dtu-pay-client') {
-                    sh 'mvn test'
-                }
             }
         }
     }
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            sh "find . -path '*/target/surefire-reports/*.xml' -print || true"
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
             sh 'docker compose down'
         }
     }

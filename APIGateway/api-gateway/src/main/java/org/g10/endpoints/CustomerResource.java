@@ -30,9 +30,9 @@ public class CustomerResource extends AbstractResource{
         }
         return handleRegister(request, () -> {
             try (CustomerProducer producer = new CustomerProducer()) {
-                producer.publishCustomerRegistered(request);
+                String response = producer.publishCustomerRegistered(request);
                 return Response.accepted()
-                        .entity("{\"status\": \"queued\"}")
+                        .entity(response)
                         .build();
             } catch (Exception e) {
                 throw new RuntimeException(e);

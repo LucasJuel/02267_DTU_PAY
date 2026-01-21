@@ -10,13 +10,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.PaymentDTO;
+import org.g10.utils.PublishWait;
 
 public class PaymentProducer implements AutoCloseable {
-    private static final String DEFAULT_HOST = "rabbitmq";
+    private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE = "payment.events";
+    private static final String PAYMENT_REPLY_QUEUE = "payment.reply";
 
     private final Connection connection;
     private final Channel channel;
@@ -45,13 +47,18 @@ public class PaymentProducer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public void publishPaymentRequested(PaymentDTO payment) throws IOException {
-        String payload = toJson(payment);
-        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                .contentType("application/json")
-                .deliveryMode(2)
-                .build();
-        channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
+    public String publishPaymentRequested(PaymentDTO payment) throws IOException {
+        try{
+            PublishWait publishWait = new PublishWait(
+                    queueName,
+                    PAYMENT_REPLY_QUEUE,
+                    channel,
+                    payment
+            );
+            return publishWait.getResponse();
+        } catch (Exception e){
+            return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
+        }
     }
 
     @Override
@@ -64,22 +71,6 @@ public class PaymentProducer implements AutoCloseable {
         }
     }
 
-    private static String toJson(PaymentDTO payment) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        addOrNull(builder, "customerAccountId", payment.getCustomerAccountId());
-        addOrNull(builder, "merchantAccountId", payment.getMerchantAccountId());
-        builder.add("amount", payment.getAmount());
-        addOrNull(builder, "message", payment.getMessage());
-        return builder.build().toString();
-    }
-
-    private static void addOrNull(JsonObjectBuilder builder, String key, String value) {
-        if (value == null) {
-            builder.addNull(key);
-        } else {
-            builder.add(key, value);
-        }
-    }
 
     private static String getEnv(String key, String fallback) {
         String value = System.getenv(key);
