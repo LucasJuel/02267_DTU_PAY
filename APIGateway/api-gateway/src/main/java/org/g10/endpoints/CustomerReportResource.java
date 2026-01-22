@@ -66,3 +66,28 @@ class MerchantReportResource extends AbstractResource {
         }
     }
 }
+
+@Path("manager/report")
+class ManagerReportResource extends AbstractResource {
+    @POST
+    public Response generateManagerReport() {
+        System.out.println("Received request to get report for manager");
+        try {
+            try (ReportingProducer producer = new ReportingProducer()) {
+                ReportDTO report = new ReportDTO("manager", "manager");
+                String response = producer.publishReportRequest(report);
+                return Response.ok()
+                        .entity(response)
+                        .build();
+            }
+        } catch (java.util.concurrent.TimeoutException e) {
+            return Response.status(Response.Status.REQUEST_TIMEOUT)
+                    .entity("{\"error\": \"Reporting service did not respond in time.\"}")
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"Failed to generate report: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+}

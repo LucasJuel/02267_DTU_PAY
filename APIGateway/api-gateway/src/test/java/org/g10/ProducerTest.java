@@ -235,6 +235,45 @@ public class ProducerTest {
         assertTrue(paymentList.isEmpty() == true, "Payment list should not be empty");
     }
 
+    @Given("the manager requests a report")
+    public void the_manager_requests_a_report() {
+        report = new ReportDTO("manager", "manager");
+        assertNotNull(report);
+    }
+
+    @When("I make a request for a report of all payments for the manager")
+    public void i_make_a_request_for_a_report_of_all_payments_for_the_manager() {
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            returnedId = producer.publishReportRequest(report);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Then("the manager report is returned successfully")
+    public void the_manager_report_is_returned_successfully() {
+        System.out.println("Returned response: " + returnedId);
+        assertNotNull(returnedId, "Response should not be null");
+
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<java.util.Map<String, Object>>(){}.getType();
+        java.util.Map<String, Object> response = gson.fromJson(returnedId, mapType);
+
+        assertNotNull(response, "Parsed response should not be null");
+        assertTrue(response.containsKey("payments"), "Response should contain payments");
+        assertTrue(response.containsKey("paymentCount"), "Response should contain paymentCount");
+        assertTrue(response.containsKey("totalAmount"), "Response should contain totalAmount");
+
+        Object paymentsObj = response.get("payments");
+        assertNotNull(paymentsObj, "payments should not be null");
+    }
+
     @Given("a merchant with id {string}")
     public void a_merchant_with_id(String string) {
         report = new ReportDTO(string, "merchant");
