@@ -20,19 +20,14 @@ pipeline {
         }
         stage('3. Run Maven Tests (All Services)') {
             steps {
-                script {
-                    def hostGateway = sh(script: "ip route | awk '/default/ {print \$3}'", returnStdout: true).trim()
-                    withEnv(["RABBITMQ_HOST=${hostGateway}"]) {
-                        dir('Account/account-service') {
-                            sh 'mvn test'
-                        }
-                        dir('Payment/payment-service') {
-                            sh 'mvn test'
-                        }
-                        dir('APIGateway/api-gateway') {
-                            sh 'mvn test'
-                        }
-                    }
+                dir('Account/account-service') {
+                    sh 'mvn test'
+                }
+                dir('Payment/payment-service') {
+                    sh 'mvn test'
+                }
+                dir('APIGateway/api-gateway') {
+                    sh 'mvn test'
                 }
             }
         }
