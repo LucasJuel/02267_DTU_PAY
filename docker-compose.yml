@@ -61,23 +61,6 @@ services:
     networks:
       - dtu-network
 
-  client:
-    build: ./Client/dtu-pay-client
-    container_name: dtu-pay-client
-    environment:
-      # This matches the System.getenv("SERVER_URL") in your Java code
-      # 'api-gateway' is the service name defined at the top of this file
-      - SERVER_URL=http://api-gateway:8080
-    ports:
-      - "8181:8181"
-    volumes:
-      - ./Client/dtu-pay-client/target/surefire-reports:/app/target/surefire-reports
-    depends_on:
-      api-gateway:
-        condition: service_healthy
-    networks:
-      - dtu-network
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq

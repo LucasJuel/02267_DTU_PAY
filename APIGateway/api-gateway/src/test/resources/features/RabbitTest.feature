@@ -1,3 +1,4 @@
+@service
 Feature: RabbitMQ basic publish
 
   Scenario: Publish and consume a message
