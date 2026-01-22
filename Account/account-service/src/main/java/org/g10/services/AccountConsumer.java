@@ -125,9 +125,9 @@ public class AccountConsumer implements AutoCloseable {
                 // Parse JSON to extract customerId
                 com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
                 String customerId = jsonObject.get("customerId").getAsString();
-                
+                System.out.println("Deregister customer with ID: " + customerId);
                 String response = customerService.deregister(customerId);
-                
+                System.out.println("Deregister customer response: " + response);
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
@@ -146,8 +146,9 @@ public class AccountConsumer implements AutoCloseable {
                 // Parse JSON to extract merchantId
                 com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
                 String merchantId = jsonObject.get("merchantId").getAsString();
-                
+                System.out.println("Deregister merchant with ID: " + merchantId);
                 String response = merchantService.deregister(merchantId);
+                System.out.println("Deregister merchant response: " + response);
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
