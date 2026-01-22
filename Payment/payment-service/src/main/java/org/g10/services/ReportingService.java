@@ -44,14 +44,6 @@ public class ReportingService {
             Object amountObj = payment.get("amount");
             if (amountObj instanceof BigDecimal amount) {
                 totalAmount = totalAmount.add(amount);
-            } else if (amountObj instanceof Number number) {
-                totalAmount = totalAmount.add(new BigDecimal(number.toString()));
-            } else if (amountObj instanceof String str && !str.isBlank()) {
-                try {
-                    totalAmount = totalAmount.add(new BigDecimal(str));
-                } catch (NumberFormatException ignored) {
-                    // ignore unparsable amounts
-                }
             }
         }
         return new ManagerDTO(payments, payments.size(), totalAmount);
