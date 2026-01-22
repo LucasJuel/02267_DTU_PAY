@@ -46,6 +46,10 @@ public class StorageHandler {
         return merchantStorage.get(merchantId);
     }
 
+    public synchronized List<Map<String, Object>> readPayments() {
+        return new ArrayList<>(payments);
+    }
+
     public void clearAll() {
         customerStorage.clear();
         merchantStorage.clear();

@@ -1,9 +1,7 @@
 package org.g10.services;
 
-import dtu.ws.fastmoney.Account;
 import dtu.ws.fastmoney.BankService;
 import dtu.ws.fastmoney.BankService_Service;
-import jakarta.ws.rs.core.Response;
 import org.g10.DTO.PaymentDTO;
 import org.g10.utils.StorageHandler;
 
@@ -37,12 +35,18 @@ public class PaymentService {
 
             System.out.println("Payment details - Merchant ID: " + merchantSimpleId + ", Customer ID: " + customerSimpleId + ", Amount: " + amount);
 
-            Map<String, Object> payment = new HashMap<>();
-
-
+            // TODO: Error handling for failed transfers.
             bank.transferMoneyFromTo(customerSimpleId, merchantSimpleId, amount , message);
+            
+            Map<String, Object> payment = new HashMap<>();
+            payment.put("merchantId", merchantSimpleId);
+            payment.put("customerId", customerSimpleId);
+            payment.put("amount", amount);
+            payment.put("message", message);
+            // Should also include token.
+            storageHandler.addPayment(payment);
             System.out.println("Payment recorded successfully: " + payment);
-
+        
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Payment registered successfully");
             responseBody.put("merchantId", merchantSimpleId);

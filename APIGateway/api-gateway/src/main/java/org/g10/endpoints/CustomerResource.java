@@ -1,5 +1,7 @@
 package org.g10.endpoints;
 
+import org.g10.DTO.ReportDTO;
+
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -7,6 +9,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import org.g10.services.ReportingProducer;
 
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
@@ -51,5 +55,4 @@ public class CustomerResource extends AbstractResource{
                 .build();
 
     }
-
 }

@@ -31,7 +31,7 @@ public class AccountServiceUnitSteps {
         merchantService = new MerchantService();
     }
 
-    @When("I register a customer with first name {string}, last name {string}, CPR {string}, and bank account {string}")
+    @Given("I register a customer with first name {string}, last name {string}, CPR {string}, and bank account {string}")
     public void iRegisterACustomer(String firstName, String lastName, String cpr, String bankAccountId) {
         registeredCustomer = new CustomerDTO(firstName, lastName, cpr, bankAccountId);
         customerId = customerService.register(registeredCustomer);

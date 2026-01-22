@@ -4,6 +4,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import io.cucumber.java.Before;
+import io.cucumber.java.BeforeAll;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -13,12 +15,20 @@ import jakarta.json.JsonObject;
 import java.io.StringReader;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
 import org.g10.services.MerchantProducer;
 import org.g10.services.PaymentProducer;
+import org.g10.services.ReportingProducer;
 import org.g10.DTO.MerchantDTO;
 import org.g10.DTO.PaymentDTO;
+import org.g10.DTO.ReportDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,17 +42,29 @@ public class ProducerTest {
     private static final String CUSTOMER_QUEUE = "account.customer";
     private static final String MERCHANT_QUEUE = "account.merchant";
     private static final String PAYMENT_QUEUE = "payment.requests";
+    private static final String REPORTING_QUEUE = "reporting.requests";
+
     private static final String QUEUE_NAME = "rabbit.test";
+    private String EXPECTED_MESSAGE;
 
     private Connection connection;
     private Channel channel;
     private CustomerProducer customerProducer;
     private MerchantProducer merchantProducer;
+    private ReportingProducer reportingProducer;
     // private PaymentProducer paymentProducer;
     private CustomerDTO customer;
     private MerchantDTO merchant;
+    private ReportDTO report;
     // private PaymentDTO payment;
     private String returnedId;
+
+    @BeforeAll
+    public static void globalSetUp() {
+        System.out.println("GLOBAL SETUP STARTED");
+        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT));
+        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST));
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -56,6 +78,7 @@ public class ProducerTest {
         channel.queueDeclare(CUSTOMER_QUEUE, true, false, false, null);
         channel.queueDeclare(MERCHANT_QUEUE, true, false, false, null);
         channel.queueDeclare(PAYMENT_QUEUE, true, false, false, null);
+        channel.queueDeclare(REPORTING_QUEUE, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
 
         customerProducer = new CustomerProducer(
@@ -73,8 +96,6 @@ public class ProducerTest {
                 MERCHANT_QUEUE
         );
 
-        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT));
-        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST));
 
         // paymentProducer = new PaymentProducer(
         //         getEnv("RABBITMQ_HOST", DEFAULT_HOST),
@@ -159,6 +180,79 @@ public class ProducerTest {
         assertNotNull(delivery, "Expected a message to be available on the test queue.");
         String actual = new String(delivery.getBody(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(expected, actual);
+    }
+
+    @When("I request a report for customer with ID {string}")
+    public void i_request_a_report_for_customer_with_id(String string) {
+        EXPECTED_MESSAGE = string;
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            ReportDTO report = new ReportDTO(string, "customer");
+            returnedId = producer.publishReportRequest(report);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    
+    @Given("a customer with id {string}")
+    public void a_customer_with_id(String string) {
+        report = new ReportDTO(string, "customer");
+        assertNotNull(report);
+    }
+
+    @When("I make a request for a report of payments for the customer")
+    public void i_make_a_request_for_a_report_of_payments_for_the_customer() {
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            returnedId = producer.publishReportRequest(report);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Then("the report of payments is returned successfully")
+    public void the_report_of_payments_is_returned_successfully() {
+        System.out.println("Returned response: " + returnedId);
+        assertNotNull(returnedId, "Response should not be null");
+        
+        // Parse the JSON array response
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Object>>(){}.getType();
+        List<Object> paymentList = gson.fromJson(returnedId, listType);
+        
+        assertNotNull(paymentList, "Parsed list should not be null");
+        assertTrue(paymentList.isEmpty() == true, "Payment list should not be empty");
+    }
+
+    @Given("a merchant with id {string}")
+    public void a_merchant_with_id(String string) {
+        report = new ReportDTO(string, "merchant");
+        assertNotNull(report);
+    }
+    @When("I make a request for a report of payments for the merchant")
+    public void i_make_a_request_for_a_report_of_payments_for_the_merchant() {
+        try (ReportingProducer producer = new ReportingProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                REPORTING_QUEUE
+        )) {
+            returnedId = producer.publishReportRequest(report);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
