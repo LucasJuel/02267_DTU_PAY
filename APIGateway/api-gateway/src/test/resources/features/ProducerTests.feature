@@ -28,3 +28,15 @@ Feature: RabbitMQ producers
     When I make a request to deregister the merchant from DTU Pay
     Then the merchant is deregistered successfully
   
+
+  Scenario: Customer called for report of payments
+    Given a RabbitMQ connection
+    And a customer with id "cust-001"
+    When I make a request for a report of payments for the customer
+    Then the report of payments is returned successfully
+  
+  Scenario: Merchant called for report of payments
+    Given a RabbitMQ connection
+    And a merchant with id "merch-001"
+    When I make a request for a report of payments for the merchant
+    Then the report of payments is returned successfully

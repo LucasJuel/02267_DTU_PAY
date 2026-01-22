@@ -18,24 +18,27 @@ public class CustomerProducer implements AutoCloseable {
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE = "account.customer";
     private static final String CUSTOMER_REPLY_QUEUE = "account.customer.reply";
+    private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
 
     private final Connection connection;
     private final Channel channel;
     private final String queueName;
-
+    private final String customerDeregisterQueue;
     public CustomerProducer() throws IOException, TimeoutException {
         this(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                getEnv("RABBITMQ_QUEUE", DEFAULT_QUEUE)
+                getEnv("RABBITMQ_QUEUE", DEFAULT_QUEUE),
+                getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", DEFAULT_QUEUE_CUSTOMER_DEREGISTER)
         );
     }
 
-    public CustomerProducer(String host, int port, String username, String password, String queueName)
+    public CustomerProducer(String host, int port, String username, String password, String queueName, String customerDeregisterQueue)
             throws IOException, TimeoutException {
         this.queueName = queueName;
+        this.customerDeregisterQueue = customerDeregisterQueue;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(host);
         factory.setPort(port);
@@ -44,6 +47,7 @@ public class CustomerProducer implements AutoCloseable {
         this.connection = factory.newConnection();
         this.channel = connection.createChannel();
         channel.queueDeclare(queueName, true, false, false, null);
+        channel.queueDeclare(customerDeregisterQueue, true, false, false, null);
     }
 
     public String publishCustomerRegistered(CustomerDTO customer) throws IOException {
@@ -63,12 +67,11 @@ public class CustomerProducer implements AutoCloseable {
 
     public String publishCustomerDeleted(String customerId) throws IOException {
         try{
-            JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-            jsonBuilder.add("customerId", customerId);
-            String message = jsonBuilder.build().toString();
+            java.util.Map<String, String> message = java.util.Map.of("customerId", customerId);
+
 
            PublishWait publishWait = new PublishWait(
-                    queueName,
+                    customerDeregisterQueue,
                     CUSTOMER_REPLY_QUEUE,
                     channel,
                     message

@@ -34,12 +34,11 @@ public class CustomerService {
     public String deregister(String customerId) {
         try {
             storageHandler.removeCustomer(customerId);
-            return "Customer deregistered successfully";
+            return "Success!";
         } catch (Exception e) {
-            return e.getMessage();
+            return "Failure!";
         }
-        
-        
+         
     }
 
 }

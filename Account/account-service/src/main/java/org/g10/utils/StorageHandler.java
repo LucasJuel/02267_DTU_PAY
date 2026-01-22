@@ -53,6 +53,9 @@ public class StorageHandler {
     public MerchantDTO removeMerchant(String merchantId) {
         return merchantStorage.remove(merchantId);
     }
+    public synchronized List<Map<String, Object>> readPayments() {
+        return new ArrayList<>(payments);
+    }
 
     public void clearAll() {
         customerStorage.clear();
