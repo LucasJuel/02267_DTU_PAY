@@ -33,6 +33,7 @@ public class CustomerService {
 
     public String deregister(String customerId) {
         try {
+            System.out.println("Attempting to deregister customer with ID: " + customerId);
             storageHandler.removeCustomer(customerId);
             return "Success!";
         } catch (Exception e) {

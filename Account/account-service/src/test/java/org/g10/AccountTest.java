@@ -12,7 +12,7 @@ import org.g10.DTO.MerchantDTO;
 import org.g10.services.AccountConsumer;
 import org.g10.services.AccountServiceApplication;
 import org.g10.services.MerchantService;
-
+import org.g10.services.CustomerService;
 import com.rabbitmq.client.AMQP;
 
 import java.io.IOException;
@@ -271,6 +271,7 @@ public class AccountTest {
             consumer = app.getConsumer();
             CustomerService service = consumer.getCustomerService();
             // Verify that the customer was removed from the service
+            //System.out.println(customer_result);
             CustomerDTO customer1 = service.getCustomer(customer_result);
             System.out.println("Customer after deregistration: " + customer1);
             assertNull(customer1, "Customer should be null after deregistration");
