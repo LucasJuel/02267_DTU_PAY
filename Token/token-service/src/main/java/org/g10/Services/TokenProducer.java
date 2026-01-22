@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class TokenProducer implements AutoCloseable {
@@ -65,15 +66,13 @@ public class TokenProducer implements AutoCloseable {
 
         String cTag = channel.basicConsume(temporaryQueue, true, (consumerTag, delivery) -> {
             if (delivery.getProperties().getCorrelationId().equals(correlationID)) {
-                if (responseQueue.offer(new String(delivery.getBody(), StandardCharsets.UTF_8))) {
-                    System.out.println("Sent token response");
-                } else {
+                if (!responseQueue.offer(new String(delivery.getBody(), StandardCharsets.UTF_8))) {
                     System.err.println("responseQueue.offer() failed");
                 }
             }
         }, consumerTag -> { });
 
-        String result = responseQueue.take();
+        String result = responseQueue.poll(1000, TimeUnit.MILLISECONDS);
         channel.basicCancel(cTag);
         return gson.fromJson(result, TokenDTO.class);
     }

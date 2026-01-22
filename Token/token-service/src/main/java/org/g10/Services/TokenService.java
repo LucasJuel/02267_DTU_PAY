@@ -7,13 +7,16 @@ public class TokenService {
     private static final TokenStorage storage = new TokenStorage();
 
     public boolean requestAddTokens(String customerId, int amount) {
+
         try {
             int currentAmount = storage.getNumberOfTokens(customerId);
-
-            if (currentAmount > 1) {
+            if (customerId == null || customerId.isEmpty()) {
+                throw new Exception("Customer ID is empty");
+            }
+            else if (currentAmount > 1) {
                 throw new Exception("User has more than one token");
             }
-            if (amount < 1 || amount > 5) {
+            else if (amount < 1 || amount > 5) {
                 throw new Exception("Addition amount must be between 1 and 5");
             }
             else {
@@ -52,7 +55,7 @@ public class TokenService {
         return token;
     }
 
-    public void removeAllCustomerTokens(String customerId) throws Exception {
+    public void removeAllCustomerTokens(String customerId) {
         storage.removeAllCustomerTokens(customerId);
     }
 

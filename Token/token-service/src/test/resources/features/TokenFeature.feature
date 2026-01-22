@@ -18,7 +18,7 @@ Feature: Token Management
     Given a registered customer "c123" without tokens
     When the customer requests 2 tokens
     Then the request is accepted
-    And  2 tokens are added
+    And 2 tokens are added
     When the customer requests 2 tokens
     Then the request is denied
 

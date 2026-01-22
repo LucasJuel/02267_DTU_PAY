@@ -33,8 +33,7 @@ public class TokenSteps {
     ConnectionFactory factory;
     Connection connection;
     Channel channel;
-
-    private Thread thread;
+    int rabbitPort;
     private static boolean started = false;
 
     public TokenSteps() throws IOException, TimeoutException {
@@ -44,7 +43,7 @@ public class TokenSteps {
     public void setup() throws IOException, TimeoutException {
 
         if (!started) {
-            thread = new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 try {
                     TokenServiceApplication.main(new String[]{});
                 } catch (Exception e) {
@@ -57,18 +56,36 @@ public class TokenSteps {
 
             try { Thread.sleep(2000); } catch (Exception ignored) {}
         }
+        String rabbitHost = System.getenv().getOrDefault("RABBITMQ_HOST", "localhost");
+        String rabbitPortStr = System.getenv("RABBITMQ_PORT");
+        rabbitPort = 5672;
+        if (rabbitPortStr != null) {
+            try {
+                rabbitPort = Integer.parseInt(rabbitPortStr);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        String rabbitUsername = System.getenv().getOrDefault("RABBITMQ_USERNAME", "guest");
+
+        String rabbitPassword = System.getenv().getOrDefault("RABBITMQ_PASSWORD", "guest");
+
         factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        factory.setPort(5672);
-        factory.setUsername("guest");
-        factory.setPassword("guest");
+
+        factory.setHost(rabbitHost);
+
+        factory.setPort(rabbitPort);
+
+        factory.setUsername(rabbitUsername);
+
+        factory.setPassword(rabbitPassword);
+
         connection = factory.newConnection();
         connection.createChannel();
         channel = connection.createChannel();
         channel.queueDeclare("token.requests", true, false, false, null);
     }
     @Given("a registered customer {string} without tokens")
-    public void aRegisteredCustomerWithoutTokens(String cID) throws Exception {
+    public void aRegisteredCustomerWithoutTokens(String cID) {
         tokenService.removeAllCustomerTokens(cID);
         currentTokens = 0;
         customerId = cID;
@@ -132,9 +149,8 @@ public class TokenSteps {
         validation.setType("VALIDATE_TOKEN");
         validation.setToken(usedToken);
         lastResponse = producer.sendTokenRequest(validation);
-        System.out.println(lastResponse.getErrorMSG());
 
-        assertEquals("SUCCESS", lastResponse.getType(), "Token was not successful");
+        assertEquals("SUCCESS", lastResponse.getType(), lastResponse.getErrorMSG());
 
     }
 
@@ -145,9 +161,6 @@ public class TokenSteps {
         validation.setToken(usedToken);
 
         lastResponse = producer.sendTokenRequest(validation);
-        System.out.println(lastResponse.getErrorMSG());
-
-        assertEquals("ERROR", lastResponse.getType());
     }
 
     @Then("the request is denied")
@@ -178,11 +191,6 @@ public class TokenSteps {
         if (connection != null && connection.isOpen()) {
             connection.close();
         }
-
-        factory = null;
-        connection = null;
-        channel = null;
-
     }
 }
 
