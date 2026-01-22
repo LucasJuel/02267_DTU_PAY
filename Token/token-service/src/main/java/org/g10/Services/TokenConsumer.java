@@ -82,8 +82,12 @@ public class TokenConsumer implements AutoCloseable {
             try {
                 switch (request.getType()) {
                     case "ADD_TOKENS":
-                        tokenService.requestAddTokens(request.getCustomerID(), request.getAmount());
-                        response.setType("SUCCESS");
+                        boolean status = tokenService.requestAddTokens(request.getCustomerID(), request.getAmount());
+                        if (status) {
+                            response.setType("SUCCESS");
+                        } else {
+                            response.setType("ERROR");
+                        }
                         break;
 
                     case "VALIDATE_TOKEN":

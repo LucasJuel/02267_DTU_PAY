@@ -47,6 +47,10 @@ public class TokenStorage {
         customerTokens.clear();
         tokenCustomers.clear();
     }
+
+    public void removeAllCustomerTokens(String customerId) {
+        customerTokens.remove(customerId);
+    }
 }
 
 

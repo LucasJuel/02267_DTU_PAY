@@ -9,28 +9,31 @@ public class TokenService {
 
     private static final TokenStorage storage = new TokenStorage();
 
-    public void requestAddTokens(String customerId, int amount) {
+    public boolean requestAddTokens(String customerId, int amount) {
 
         try {
 
 
             int currentAmount = storage.getNumberOfTokens(customerId);
             if (currentAmount > 1) {
-                return;
+                return false;
             }
             if (currentAmount + amount > 6) {
-                return;
+                return false;
             }
 
-            if (amount < 1 || amount > 5)
-                return;
+            if (amount < 1 || amount > 5) {
+                return false;
 
+            }
 
             storage.addTokens(customerId, amount);
+            return true;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
 
     }
 
@@ -55,6 +58,10 @@ public class TokenService {
             throw new Exception("Token not found in system");
         }
         return token;
+    }
+
+    public void removeAllCustomerTokens(String customerId) throws Exception {
+        storage.removeAllCustomerTokens(customerId);
     }
 
     public int getNumTokens(String customerId) {

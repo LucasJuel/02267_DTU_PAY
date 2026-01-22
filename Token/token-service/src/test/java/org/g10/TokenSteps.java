@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import io.cucumber.java.Before;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -29,30 +30,27 @@ public class TokenSteps {
 
     String usedToken;
 
+    int currentTokens;
     TokenService tokenService = new TokenService();
     String customerId = "Customer123";
 
-    private ConnectionFactory factory;
-    private Connection connection;
-    private Channel channel;
     private TokenServiceApplication app;
-    private Thread thread;
 
     public TokenSteps() throws IOException, TimeoutException {
     }
 
     @Before
     public void setup() throws IOException, TimeoutException {
-        factory = new ConnectionFactory();
+        ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         factory.setPort(5672);
         factory.setUsername("guest");
         factory.setPassword("guest");
-        connection = factory.newConnection();
-        channel = connection.createChannel();
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
         channel.queueDeclare("token.requests", true, false, false, null);
 
-        thread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             app = new TokenServiceApplication();
             TokenServiceApplication.main(new String[]{});
         });
@@ -64,7 +62,9 @@ public class TokenSteps {
         }
     }
     @Given("a registered customer {string} without tokens")
-    public void aRegisteredCustomerWithoutTokens(String cID) {
+    public void aRegisteredCustomerWithoutTokens(String cID) throws Exception {
+        tokenService.removeAllCustomerTokens(cID);
+        currentTokens = 0;
         customerId = cID;
         int val = tokenService.getNumTokens(customerId);
         assertEquals(0, val);
@@ -72,6 +72,7 @@ public class TokenSteps {
 
     @When("the customer requests {int} tokens")
     public void theCustomerRequestsTokens(int numTokens) throws IOException, InterruptedException {
+        currentTokens = tokenService.getNumTokens(customerId);
         TokenDTO request = new TokenDTO();
         request.setType("ADD_TOKENS");
         request.setCustomerID(customerId);
@@ -80,12 +81,14 @@ public class TokenSteps {
         lastResponse = producer.sendTokenRequest(request);
     }
 
-    @Then("the request is accepted and {int} tokens are added")
-    public void theRequestIsGrantedAndTokensAreReceived(int arg0) {
+    @Then("the request is accepted")
+    public void theRequestIsGrantedAndTokensAreReceived() {
         assertEquals("SUCCESS", lastResponse.getType());
+    }
 
-        int val = tokenService.getNumTokens(customerId);
-        assertEquals(arg0, val);
+    @And("{int} tokens are added")
+    public void tokensAreAdded(int arg0) {
+        assertEquals(arg0 + currentTokens, tokenService.getNumTokens(customerId));
     }
 
     @When("the customer pays a merchant using one token")
@@ -139,10 +142,24 @@ public class TokenSteps {
         assertEquals("ERROR", lastResponse.getType());
     }
 
+    @Then("the request is denied")
+    public void theRequestIsDenied() {
+        assertEquals("ERROR", lastResponse.getType());
+    }
 
-    @Then("the payment is denied")
-    public void thePaymentIsDenied() {
+    @Given("a registered merchant")
+    public void aRegisteredMerchant() {
         assert(true);
+    }
+
+
+    @When("the merchant attempts to process a payment with token {string}")
+    public void theMerchantAttemptsToProcessAPaymentWithToken(String token) throws IOException, InterruptedException {
+        TokenDTO request = new TokenDTO();
+        request.setType("VALIDATE_TOKEN");
+        request.setToken(token);
+        lastResponse = producer.sendTokenRequest(request);
+
     }
 }
 
