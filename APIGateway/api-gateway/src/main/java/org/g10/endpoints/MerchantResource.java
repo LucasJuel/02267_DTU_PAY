@@ -1,6 +1,7 @@
 package org.g10.endpoints;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -49,6 +50,28 @@ public class MerchantResource extends AbstractResource {
                 .entity("{\"error\": \"Merchant lookup is not supported via the api-gateway.\"}")
                 .build();
 
+    }
+
+    @DELETE
+    @Path("/{merchantId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMerchant(@jakarta.ws.rs.PathParam("merchantId") String merchantId) {
+        System.out.println("Received request to delete merchant with ID: " + merchantId);
+        if (merchantId == null || merchantId.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"merchantId is required.\"}")
+                    .build();
+        }
+        return handleDeregister(merchantId, () -> {
+            try (MerchantProducer producer = new MerchantProducer()) {
+                String response = producer.publishMerchantDeleted(merchantId);
+                return Response.accepted()
+                        .entity(response)
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }

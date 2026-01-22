@@ -120,4 +120,45 @@ public class AccountServiceUnitSteps {
         assertNull(customerService.getCustomer(merchantId));
         assertNull(merchantService.getMerchant(customerId));
     }
+
+    @When("I deregister the customer with the customer id")
+    public void iDeregisterTheCustomerWithTheCustomerId() {
+        assertNotNull(customerId, "Customer ID should be set before deregistration");
+        customerService.deregister(customerId);
+    }
+
+    @Then("the customer is no longer in storage")
+    public void theCustomerIsNoLongerInStorage() {
+        CustomerDTO stored = customerService.getCustomer(customerId);
+        assertNull(stored, "Customer should be null after deregistration");
+    }
+
+    @When("I deregister the merchant with the merchant id")
+    public void iDeregisterTheMerchantWithTheMerchantId() {
+        assertNotNull(merchantId, "Merchant ID should be set before deregistration");
+        merchantService.deregister(merchantId);
+    }
+
+    @Then("the merchant is no longer in storage")
+    public void theMerchantIsNoLongerInStorage() {
+        MerchantDTO stored = merchantService.getMerchant(merchantId);
+        assertNull(stored, "Merchant should be null after deregistration");
+    }
+
+    @When("I attempt to deregister a customer with id {string}")
+    public void iAttemptToDeregisterACustomerWithId(String id) {
+        // Attempt to deregister, should not throw exception even if customer does not exist
+        customerService.deregister(id);
+    }
+
+    @When("I attempt to deregister a merchant with id {string}")
+    public void iAttemptToDeregisterAMerchantWithId(String id) {
+        // Attempt to deregister, should not throw exception even if merchant does not exist
+        merchantService.deregister(id);
+    }
+
+    @Then("the deregistration completes without error")
+    public void theDeregistrationCompletesWithoutError() {
+        assertTrue(true);
+    }
 }

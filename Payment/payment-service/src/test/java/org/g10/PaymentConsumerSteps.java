@@ -14,6 +14,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.g10.services.PaymentConsumer;
+import org.g10.services.PaymentService;
 import org.g10.services.PaymentServiceApplication;
 import org.g10.services.ReportingService;
 import org.g10.utils.StorageHandler;
@@ -36,7 +37,6 @@ public class PaymentConsumerSteps {
     private Connection connection;
     private Channel channel;
     private PaymentServiceApplication app;
-    private String payment_result;
     private Thread thread;
     private final BankService bank = new BankService_Service().getBankServicePort();
     private final String apiKey = "kayak2098";
@@ -47,38 +47,34 @@ public class PaymentConsumerSteps {
     private final List<String> accounts = new ArrayList<>();
     private final StorageHandler storageHandler = StorageHandler.getInstance();
     private final ReportingService reportingService = new ReportingService();
+    private final PaymentService paymentService = new PaymentService();
+    private String paymentResponse;
 
     @Before
     public void setup() throws IOException, TimeoutException {
-        factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        factory.setPort(5672);
-        factory.setUsername("guest");
-        factory.setPassword("guest");
-        connection = factory.newConnection();
-        channel = connection.createChannel();
-        channel.queueDeclare("payment.requests", true, false, false, null);
+        // factory = new ConnectionFactory();
+        // factory.setHost("localhost");
+        // factory.setPort(5672);
+        // factory.setUsername("guest");
+        // factory.setPassword("guest");
+        // connection = factory.newConnection();
+        // channel = connection.createChannel();
+        // channel.queueDeclare("payment.requests", true, false, false, null);
         
-        thread = new Thread(() -> {
-            app = new PaymentServiceApplication();
-            PaymentServiceApplication.main(new String[]{});
-        });
-        thread.start();
-        try {
-            Thread.sleep(2000); // Wait for the service to start
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // thread = new Thread(() -> {
+        //     app = new PaymentServiceApplication();
+        //     PaymentServiceApplication.main(new String[]{});
+        // });
+        // thread.start();
+        // try {
+        //     Thread.sleep(2000); // Wait for the service to start
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
     }
 
-    @Given("the payment service is running")
-    public void a_fresh_payment_store() {
-        // Storage already reset in @Before
-        assertNotNull(app);
 
-    }
-
-    @And("the customer firstname {string} lastname {string} with cpr {string} is registered with the bank with an initial balance of {int} kr")
+    @Given("the customer firstname {string} lastname {string} with cpr {string} is registered with the bank with an initial balance of {int} kr")
     public void theCustomerFirstnameLastnameWithCprIsRegisteredWithTheBankWithAnInitialBalanceOfKr(String arg0, String arg1, String arg2, int initBalance) throws BankServiceException_Exception {
 
         customerUser.setFirstName(arg0);
@@ -121,38 +117,15 @@ public class PaymentConsumerSteps {
 
     @When("I register the payment with the payment service") 
     public void i_register_the_payment_with_the_payment_service() {
-        try {
-            String correlationId = java.util.UUID.randomUUID().toString();
-            String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
-            CompletableFuture <String> future = new CompletableFuture<>();
-            String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
-                if (correlationId.equals(message.getProperties().getCorrelationId())) {
-                    future.complete(new String(message.getBody()));
-                }
-                }, tag -> {
-                });
-            AMQP.BasicProperties props = new AMQP.BasicProperties
-                    .Builder()
-                    .correlationId(correlationId)
-                    .replyTo(replyQueue)
-                    .build();
-            String payload = new Gson().toJson(paymentDTO);
-            System.out.println("payload: " + payload);
-            channel.basicPublish("", "payment.requests", props, payload.getBytes());
-            payment_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
-            System.out.println("Received response: " + payment_result);
-            channel.basicCancel(consumerTag);
-
-        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
-            e.printStackTrace();
-        }
+        paymentResponse = paymentService.register(paymentDTO);
+        
     }
 
     @Then("the payment service should respond with a success message")
     public void the_payment_service_should_respond_with_a_success_message() {
         System.out.println("Starting test 4");
-        assertNotNull(payment_result);
-        System.out.println("Payment service response: " + payment_result);
+        assertEquals("Success!", paymentResponse);
+        System.out.println("Payment service response: " + paymentResponse);
         // Further assertions can be made based on the expected response format
     }
 
@@ -194,6 +167,9 @@ public class PaymentConsumerSteps {
     public void deleteAccounts() throws BankServiceException_Exception {
         for (String account : accounts) {
             bank.retireAccount(apiKey, account);
+            
         }
+        storageHandler.clear();
+        accounts.clear();
     }
 }

@@ -31,6 +31,7 @@ import org.g10.DTO.PaymentDTO;
 import org.g10.DTO.ReportDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,6 +44,8 @@ public class ProducerTest {
     private static final String MERCHANT_QUEUE = "account.merchant";
     private static final String PAYMENT_QUEUE = "payment.requests";
     private static final String REPORTING_QUEUE = "reporting.requests";
+    private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
+    private static final String DEFAULT_QUEUE_MERCHANT_DEREGISTER = "account.merchant.deregister";
 
     private static final String QUEUE_NAME = "rabbit.test";
     private String EXPECTED_MESSAGE;
@@ -86,14 +89,16 @@ public class ProducerTest {
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                CUSTOMER_QUEUE
+                CUSTOMER_QUEUE,
+                DEFAULT_QUEUE_CUSTOMER_DEREGISTER
         );
         merchantProducer = new MerchantProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                MERCHANT_QUEUE
+                MERCHANT_QUEUE,
+                DEFAULT_QUEUE_MERCHANT_DEREGISTER
         );
 
 
@@ -167,6 +172,34 @@ public class ProducerTest {
             throw new RuntimeException(e);
         }
         
+    }
+
+    @When("I make a request to deregister the customer from DTU Pay")
+    public void i_make_a_request_to_deregister_the_customer_from_dtu_pay() throws Exception {
+        // First register the customer to get an ID
+        returnedId = customerProducer.publishCustomerRegistered(customer);
+        // Then deregister using that ID
+        returnedId = customerProducer.publishCustomerDeleted(returnedId);
+    }
+
+    @Then("the customer is deregistered successfully")
+    public void the_customer_is_deregistered_successfully() {
+        assertNotEquals("Failure!", returnedId);
+        System.out.println("Deregistration response: " + returnedId);
+    }
+
+    @When("I make a request to deregister the merchant from DTU Pay")
+    public void i_make_a_request_to_deregister_the_merchant_from_dtu_pay() throws Exception {
+        // First register the merchant to get an ID
+        returnedId = merchantProducer.publishMerchantRegistered(merchant);
+        // Then deregister using that ID
+        returnedId = merchantProducer.publishMerchantDeleted(returnedId);
+    }
+
+    @Then("the merchant is deregistered successfully")
+    public void the_merchant_is_deregistered_successfully() {
+        assertNotEquals("Failure!", returnedId);
+        System.out.println("Deregistration response: " + returnedId);
     }
 
     @When("I publish {string} to the rabbit test queue")

@@ -41,11 +41,21 @@ public class StorageHandler {
         return customerStorage.get(customerId);
     }
 
+    public Map<String, CustomerDTO> getAllCustomers() {
+        return customerStorage;
+    }
 
     public MerchantDTO getMerchant(String merchantId) {
         return merchantStorage.get(merchantId);
     }
 
+    public CustomerDTO removeCustomer(String customerId) {
+        return customerStorage.remove(customerId);
+    }
+
+    public MerchantDTO removeMerchant(String merchantId) {
+        return merchantStorage.remove(merchantId);
+    }
     public synchronized List<Map<String, Object>> readPayments() {
         return new ArrayList<>(payments);
     }

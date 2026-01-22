@@ -24,8 +24,16 @@ public class MerchantService {
         return merchant;
     }
 
-    public void handleMerchantRegistered(String message) {
-        // Implementation for handling merchant registered events
-
+    public String deregister(String merchantId) {
+        try {
+            System.out.println("Attempting to deregister merchant with ID: " + merchantId);
+            storageHandler.removeMerchant(merchantId);
+            return "Success!";
+        } catch (Exception e) {
+        
+            return "Failure!";
+        }
+         
     }
+
 }

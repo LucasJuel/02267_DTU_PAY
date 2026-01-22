@@ -55,7 +55,7 @@ public class PaymentService {
         
         
   
-            return "Ok";
+            return "Success!";
         } catch(Exception e){
             e.printStackTrace();
             return "{\"error\": \"Failed to process payment: " + e.getMessage() + "\"}";
