@@ -29,7 +29,7 @@ public class TokenProducer implements AutoCloseable {
                 getEnvInt(),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                getEnv("RABBITMQ_PAYMENT_QUEUE", DEFAULT_QUEUE)
+                getEnv("RABBITMQ_TOKEN_QUEUE", DEFAULT_QUEUE)
         );
     }
 

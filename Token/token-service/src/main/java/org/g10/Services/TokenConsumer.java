@@ -32,7 +32,7 @@ public class TokenConsumer implements AutoCloseable {
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                getEnv("RABBITMQ_QUEUE_MERCHANT", DEFAULT_QUEUE_TOKEN)
+                getEnv("RABBITMQ_QUEUE_TOKEN", DEFAULT_QUEUE_TOKEN)
         );
     }
 

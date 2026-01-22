@@ -2,38 +2,31 @@ package org.g10.Services;
 
 import org.g10.Utils.TokenStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TokenService {
 
     private static final TokenStorage storage = new TokenStorage();
 
     public boolean requestAddTokens(String customerId, int amount) {
-
         try {
-
-
             int currentAmount = storage.getNumberOfTokens(customerId);
+
             if (currentAmount > 1) {
-                return false;
+                throw new Exception("Can't add more than one token");
             }
             if (currentAmount + amount > 6) {
-                return false;
+                throw new Exception("Can't have more than 5 tokens");
             }
-
             if (amount < 1 || amount > 5) {
-                return false;
-
+                throw new Exception("Addition amount must be between 1 and 5");
             }
-
-            storage.addTokens(customerId, amount);
-            return true;
-
+            else {
+                storage.addTokens(customerId, amount);
+                return true;
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed to add tokens: " + e.getMessage());
+            return false;
         }
-        return false;
 
     }
 
