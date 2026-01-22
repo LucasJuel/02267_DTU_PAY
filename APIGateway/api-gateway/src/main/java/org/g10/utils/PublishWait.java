@@ -31,11 +31,11 @@ public class PublishWait {
                     .build();
         
             channel.basicPublish("", queue, props, payload.getBytes(StandardCharsets.UTF_8));
-            String response = responseFuture.get(10, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
+            String response = responseFuture.get(20, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             channel.basicCancel(consumerTag);
             this.response = response;
         } catch (java.util.concurrent.TimeoutException e){
-            String errorMsg = String.format("Timeout waiting for response from queue '%s' after 5 seconds", queue);
+            String errorMsg = String.format("Timeout waiting for response from queue '%s' after 20 seconds", queue);
             throw new RuntimeException(errorMsg, e);
         } catch (InterruptedException e){
             Thread.currentThread().interrupt();
@@ -65,5 +65,4 @@ public class PublishWait {
         return gson.toJson(obj);
     }
 }
-
 
