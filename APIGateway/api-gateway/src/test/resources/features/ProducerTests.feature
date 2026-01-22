@@ -1,5 +1,5 @@
+@RabbitMQ
 Feature: RabbitMQ producers
-
   Scenario: Customer is registered with DTU Pay
     Given a RabbitMQ connection
     And a customer with first name "Alice", last name "Smith" and cpr "123456-7890"

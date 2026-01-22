@@ -51,11 +51,13 @@ public class AccountTest {
         channel.queueDeclare("account.merchant", true, false, false, null);
         channel.queueDeclare("account.customer.deregister", true, false, false, null);
         channel.queueDeclare("account.merchant.deregister", true, false, false, null);
-        thread = new Thread(() -> {
-            app = new AccountServiceApplication();
-            AccountServiceApplication.main(new String[]{});
-        });
-        thread.start();
+        if(app == null){
+            thread = new Thread(() -> {
+                app = new AccountServiceApplication();
+                AccountServiceApplication.main(new String[]{});
+            });
+            thread.start();
+        }
         try {
             Thread.sleep(2000); // Wait for the service to start
         } catch (InterruptedException e) {

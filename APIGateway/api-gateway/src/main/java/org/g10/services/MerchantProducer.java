@@ -57,6 +57,7 @@ public class MerchantProducer implements AutoCloseable {
             );
             return publishWait.getResponse();
         } catch (Exception e){
+            e.printStackTrace();
             return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
         }
     }
