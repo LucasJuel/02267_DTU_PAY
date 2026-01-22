@@ -16,19 +16,4 @@
         <module>e2e-tests</module>
         <module>Payment/payment-service</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>service-tests</id>
-            <properties>
-                <skipITs>false</skipITs>
-            </properties>
-        </profile>
-        <profile>
-            <id>e2e</id>
-            <properties>
-                <skipITs>true</skipITs>
-            </properties>
-        </profile>
-    </profiles>
 </project>
