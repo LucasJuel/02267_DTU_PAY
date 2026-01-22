@@ -30,7 +30,7 @@ public class TokenSteps {
     int currentTokens;
     TokenService tokenService = new TokenService();
     String customerId = "Customer123";
-    ConnectionFactory factory;
+    ConnectionFactory factory = new ConnectionFactory();
     Connection connection;
     Channel channel;
     int rabbitPort;
@@ -68,8 +68,6 @@ public class TokenSteps {
         String rabbitUsername = System.getenv().getOrDefault("RABBITMQ_USERNAME", "guest");
 
         String rabbitPassword = System.getenv().getOrDefault("RABBITMQ_PASSWORD", "guest");
-
-        factory = new ConnectionFactory();
 
         factory.setHost(rabbitHost);
 
