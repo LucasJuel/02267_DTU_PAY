@@ -1,39 +1,39 @@
 package org.g10.services;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-
-import jakarta.json.Json;
-import jakarta.json.JsonObjectBuilder;
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-import org.g10.DTO.CustomerDTO;
+import org.g10.DTO.ReportDTO;
 import org.g10.utils.PublishWait;
 
-public class CustomerProducer implements AutoCloseable {
-    private static final String DEFAULT_HOST = "localhost";
+import com.rabbitmq.client.*;
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+
+public class ReportingProducer implements AutoCloseable {
+    private static final String DEFAULT_HOST = "rabbitmq";
     private static final int DEFAULT_PORT = 5672;
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
-    private static final String DEFAULT_QUEUE = "account.customer";
-    private static final String CUSTOMER_REPLY_QUEUE = "account.customer.reply";
+    private static final String DEFAULT_QUEUE = "reporting.requests";
+    private static final String REPORT_REPLY_QUEUE = "reporting.reply";
 
     private final Connection connection;
     private final Channel channel;
     private final String queueName;
+    private final Gson gson = new Gson();
 
-    public CustomerProducer() throws IOException, TimeoutException {
+    public ReportingProducer() throws IOException, TimeoutException {
         this(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
                 getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-                getEnv("RABBITMQ_QUEUE", DEFAULT_QUEUE)
+                getEnv("RABBITMQ_REPORTING_QUEUE", DEFAULT_QUEUE)
         );
     }
 
-    public CustomerProducer(String host, int port, String username, String password, String queueName)
+    public ReportingProducer(String host, int port, String username, String password, String queueName)
             throws IOException, TimeoutException {
         this.queueName = queueName;
         ConnectionFactory factory = new ConnectionFactory();
@@ -46,28 +46,18 @@ public class CustomerProducer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public String publishCustomerRegistered(CustomerDTO customer) throws IOException {
+    public String publishReportRequest(ReportDTO report) throws IOException {
         try{
-           PublishWait publishWait = new PublishWait(
-                    queueName,
-                    CUSTOMER_REPLY_QUEUE,
-                    channel,
-                    customer
+            PublishWait publishWait = new PublishWait(
+                this.queueName,
+                REPORT_REPLY_QUEUE,
+                this.channel,
+                report
             );
             return publishWait.getResponse();
-        } catch(Exception e){
+        } catch (Exception e){
             e.printStackTrace();
             return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
-        }
-    }
-
-    @Override
-    public void close() throws IOException, TimeoutException {
-        if (channel != null && channel.isOpen()) {
-            channel.close();
-        }
-        if (connection != null && connection.isOpen()) {
-            connection.close();
         }
     }
 
@@ -85,6 +75,16 @@ public class CustomerProducer implements AutoCloseable {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return fallback;
+        }
+    }
+
+    @Override
+    public void close() throws IOException, TimeoutException {
+        if (channel != null && channel.isOpen()) {
+            channel.close();
+        }
+        if (connection != null && connection.isOpen()) {
+            connection.close();
         }
     }
 }

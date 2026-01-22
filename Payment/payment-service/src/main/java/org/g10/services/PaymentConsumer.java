@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.rabbitmq.client.*;
 
 import org.g10.DTO.PaymentDTO;
-
-import jakarta.ws.rs.core.Response;
+import org.g10.DTO.ReportDTO;
+import org.g10.services.ReportingService;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
@@ -18,9 +20,11 @@ public class PaymentConsumer implements AutoCloseable {
     private static final String DEFAULT_USERNAME = "guest";
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE_PAYMENT = "payment.requests";
+    private static final String DEFAULT_REPORTING_QUEUE = "reporting.requests";
 
     private final Gson gson = new Gson();
     private final PaymentService paymentService = new PaymentService();
+    private final ReportingService reportingService = new ReportingService();
 
     private final String rabbitHost;
     private final int rabbitPort;
@@ -58,12 +62,13 @@ public class PaymentConsumer implements AutoCloseable {
         connection = factory.newConnection();
         channel = connection.createChannel();
         channel.queueDeclare(queueName, true, false, false, null);
+        channel.queueDeclare(DEFAULT_REPORTING_QUEUE, true, false, false, null);
 
         System.out.println(" [*] Waiting for payment messages on queue '" + queueName + "'. To exit press CTRL+C");
 
         DeliverCallback callback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [x] Received '" + message + "'");
+            System.out.println(" [PAYMENT] Received '" + message + "'");
             try {
                 PaymentDTO paymentRequest = gson.fromJson(message, PaymentDTO.class);
                 String serviceResponse = paymentService.register(paymentRequest);
@@ -79,7 +84,28 @@ public class PaymentConsumer implements AutoCloseable {
             }
         };
 
+        DeliverCallback reportCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [REPORT REQUEST] Received '" + message + "'");
+            try {
+                
+                ReportDTO reportRequest = gson.fromJson(message, ReportDTO.class);
+                System.out.println("Generating report for ID: " + reportRequest.getAccountId());
+                List<Map<String, Object>> serviceResponse = reportingService.getAllPayments(reportRequest);
+
+                String replyTo = delivery.getProperties().getReplyTo();
+                if (replyTo != null && !replyTo.isBlank()) {
+                    String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println("Sending report response: " + serviceResponse.toString() + " to " + replyTo + " with correlationId " + correlationId);
+                    sendResponse(channel, replyTo, correlationId, serviceResponse.toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
         channel.basicConsume(queueName, true, callback, consumerTag -> { });
+        channel.basicConsume(DEFAULT_REPORTING_QUEUE, true, reportCallback, consumerTag -> { });
     }
 
     /*private final StorageHandler storageHandler;

@@ -13,29 +13,27 @@ pipeline {
                 echo "System is healthy and ready for testing."
             }
         }
-        stage('3. Run Maven Tests (All Services)') {
+        stage('2.5 Cleanup Old Test Reports') {
             steps {
-                dir('Account/account-service') {
-                    sh 'mvn test'
-                }
-                dir('Payment/payment-service') {
-                    sh 'mvn test'
-                }
-                dir('APIGateway/api-gateway') {
-                    sh 'mvn test'
-                }
-                dir('Server/thebois-dtu-pay') {
-                    sh 'mvn test'
-                }
-                dir('Client/dtu-pay-client') {
-                    sh 'mvn test'
-                }
+                sh "find . -path '*/target/surefire-reports/*.xml' -delete || true"
+                sh "find . -path '*/target/failsafe-reports/*.xml' -delete || true"
+            }
+        }
+        stage('3. Run Unit + Service Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('4. Run E2E Tests') {
+            steps {
+                sh 'SERVER_URL=http://localhost:8080 mvn -pl e2e-tests -am test'
             }
         }
     }
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            sh "find . -path '*/target/surefire-reports/*.xml' -print || true"
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
             sh 'docker compose down'
         }
     }

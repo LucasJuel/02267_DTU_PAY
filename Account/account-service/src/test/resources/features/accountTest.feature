@@ -11,7 +11,7 @@ Feature: Account tests
     When I register the merchant with the account service
     Then there is a message in the account queue with the merchant details
 
-    Scenario: Register two new merchant accounts
+  Scenario: Register two new merchant accounts
     Given a merchant with name "Benny", last name "Bentsen", and CPR "098765-4321"
     And a merchant with name "Clara", last name "Clausen", and CPR "567890-1234"
     And the account service is running

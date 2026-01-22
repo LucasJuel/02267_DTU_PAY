@@ -45,6 +45,7 @@ public class StorageHandler {
     }
 
     public synchronized void addPayment(Map<String, Object> payment) {
+        System.out.println("Adding payment: " + payment);
         payments.add(payment);
     }
 
