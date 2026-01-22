@@ -34,7 +34,8 @@ pipeline {
         always {
             sh "find . -path '*/target/surefire-reports/*.xml' -print || true"
             sh "find . -path '*/target/failsafe-reports/*.xml' -print || true"
-            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/*.xml'
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+            junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'
             sh 'docker compose down'
         }
     }
