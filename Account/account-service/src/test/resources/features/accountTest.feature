@@ -1,4 +1,3 @@
-@service
 Feature: Account tests
   Scenario: Register a new customer account
     Given a customer with name "Anna", last name "Andersen", and CPR "123456-7890"
