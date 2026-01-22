@@ -5,6 +5,7 @@ import com.rabbitmq.client.*;
 
 import org.g10.DTO.PaymentDTO;
 import org.g10.DTO.ReportDTO;
+import org.g10.DTO.ManagerDTO;
 import org.g10.services.ReportingService;
 
 import java.io.IOException;
@@ -91,13 +92,20 @@ public class PaymentConsumer implements AutoCloseable {
                 
                 ReportDTO reportRequest = gson.fromJson(message, ReportDTO.class);
                 System.out.println("Generating report for ID: " + reportRequest.getAccountId());
-                List<Map<String, Object>> serviceResponse = reportingService.getAllPayments(reportRequest);
+                String responseJson;
+                if (reportRequest != null && "manager".equals(reportRequest.getAccountType())) {
+                    ManagerDTO serviceResponse = reportingService.getManagerReport(reportRequest);
+                    responseJson = gson.toJson(serviceResponse);
+                } else {
+                    List<Map<String, Object>> serviceResponse = reportingService.getAllPayments(reportRequest);
+                    responseJson = gson.toJson(serviceResponse);
+                }
 
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending report response: " + serviceResponse.toString() + " to " + replyTo + " with correlationId " + correlationId);
-                    sendResponse(channel, replyTo, correlationId, serviceResponse.toString());
+                    System.out.println("Sending report response: " + responseJson + " to " + replyTo + " with correlationId " + correlationId);
+                    sendResponse(channel, replyTo, correlationId, responseJson);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

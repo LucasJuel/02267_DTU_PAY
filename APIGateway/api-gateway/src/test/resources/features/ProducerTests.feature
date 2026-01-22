@@ -14,6 +14,20 @@ Feature: RabbitMQ producers
     When I make a request to register the merchant in DTU Pay
     Then the merchant is registered successfully
 
+  Scenario: Customer is deregistered from DTU Pay
+    Given a RabbitMQ connection
+    And a customer with first name "Charlie", last name "Brown" and cpr "112233-4455"
+    And the customer have a bank account with the bank account id "cust-account-789"
+    When I make a request to deregister the customer from DTU Pay
+    Then the customer is deregistered successfully
+
+  Scenario: Merchant is deregistered from DTU Pay
+    Given a RabbitMQ connection
+    And a merchant with first name "Diana" and last name "Prince" and cpr "556677-8899"
+    And the merchant have a bank account with the bank account id "merch-account-012"
+    When I make a request to deregister the merchant from DTU Pay
+    Then the merchant is deregistered successfully
+  
 
   Scenario: Customer called for report of payments
     Given a RabbitMQ connection
@@ -26,3 +40,9 @@ Feature: RabbitMQ producers
     And a merchant with id "merch-001"
     When I make a request for a report of payments for the merchant
     Then the report of payments is returned successfully
+
+  Scenario: Manager called for report of all payments
+    Given a RabbitMQ connection
+    And the manager requests a report
+    When I make a request for a report of all payments for the manager
+    Then the manager report is returned successfully

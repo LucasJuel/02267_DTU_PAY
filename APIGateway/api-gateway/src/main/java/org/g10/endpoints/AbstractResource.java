@@ -25,4 +25,21 @@ public abstract class AbstractResource {
                     .build();
         }
     }
+
+    protected <T> Response handleDeregister(T request, Supplier<Response> serviceCall) {
+        logger.info("Deregister request: {}", request);
+        if (request == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"request is required.\"}")
+                    .build();
+        }
+        try {
+            return serviceCall.get();
+        } catch (Exception e) {
+            logger.error("Deregistration failed", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
 }

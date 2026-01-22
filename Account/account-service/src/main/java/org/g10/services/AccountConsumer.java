@@ -18,6 +18,8 @@ public class AccountConsumer implements AutoCloseable {
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE_MERCHANT = "account.merchant";
     private static final String DEFAULT_QUEUE_CUSTOMER = "account.customer";
+    private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
+    private static final String DEFAULT_QUEUE_MERCHANT_DEREGISTER = "account.merchant.deregister";
     private static final String DEFAULT_QUEUE_REPORTING = "reporting.requests";
 
     private final String rabbitHost;
@@ -26,6 +28,8 @@ public class AccountConsumer implements AutoCloseable {
     private final String rabbitPassword;
     private final String customerQueue;
     private final String merchantQueue;
+    private final String customerDeregisterQueue;
+    private final String merchantDeregisterQueue;
     private final String reportingQueue;
 
     private final Gson gson = new Gson();
@@ -41,18 +45,22 @@ public class AccountConsumer implements AutoCloseable {
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 getEnv("RABBITMQ_QUEUE_MERCHANT", DEFAULT_QUEUE_MERCHANT),
                 getEnv("RABBITMQ_QUEUE_CUSTOMER", DEFAULT_QUEUE_CUSTOMER),
+                getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", DEFAULT_QUEUE_CUSTOMER_DEREGISTER),
+                getEnv("RABBITMQ_QUEUE_MERCHANT_DEREGISTER", DEFAULT_QUEUE_MERCHANT_DEREGISTER),
                 getEnv("RABBITMQ_QUEUE_REPORTING", DEFAULT_QUEUE_REPORTING)
         );
     }
 
     public AccountConsumer(String rabbitmqHost, int rabbitmqPort, String rabbitmqUser, String rabbitmqPassword, String rabbitmqQueue
-            , String rabbitmqQueueCustomer, String rabbitmqQueueReporting) {
+            , String rabbitmqQueueCustomer, String customerDeregisterQueue, String merchantDeregisterQueue, String rabbitmqQueueReporting) {  
         this.rabbitHost = rabbitmqHost;
         this.rabbitPort = rabbitmqPort;
         this.rabbitUser = rabbitmqUser;
         this.rabbitPassword = rabbitmqPassword;
         this.merchantQueue = rabbitmqQueue;
         this.customerQueue = rabbitmqQueueCustomer;
+        this.customerDeregisterQueue = customerDeregisterQueue;
+        this.merchantDeregisterQueue = merchantDeregisterQueue;
         this.reportingQueue = rabbitmqQueueReporting;
     }
 
@@ -66,6 +74,8 @@ public class AccountConsumer implements AutoCloseable {
         Channel channel = connection.createChannel();
         channel.queueDeclare(customerQueue, true, false, false, null);
         channel.queueDeclare(merchantQueue, true, false, false, null);
+        channel.queueDeclare(customerDeregisterQueue, true, false, false, null);
+        channel.queueDeclare(merchantDeregisterQueue, true, false, false, null);
         channel.queueDeclare(reportingQueue, true, false, false, null);
 
         System.out.println(" [*] Waiting for messages To exit press CTRL+C");
@@ -106,6 +116,53 @@ public class AccountConsumer implements AutoCloseable {
         channel.basicConsume(customerQueue, true, customerCallback, consumerTag -> {
         });
         channel.basicConsume(merchantQueue, true, merchantCallback, consumerTag -> {
+        });
+
+        DeliverCallback customerDeregisterCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [x] Received deregister request for customer: '" + message + "'");
+            try {
+                // Parse JSON to extract customerId
+                com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
+                String customerId = jsonObject.get("customerId").getAsString();
+                System.out.println("Deregister customer with ID: " + customerId);
+                String response = customerService.deregister(customerId);
+                System.out.println("Deregister customer response: " + response);
+                String replyTo = delivery.getProperties().getReplyTo();
+                if (replyTo != null && !replyTo.isBlank()) {
+                    String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println("Sending deregister response: " + response + " to " + replyTo);
+                    sendResponse(channel, replyTo, correlationId, response);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        DeliverCallback merchantDeregisterCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [x] Received deregister request for merchant: '" + message + "'");
+            try {
+                // Parse JSON to extract merchantId
+                com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
+                String merchantId = jsonObject.get("merchantId").getAsString();
+                System.out.println("Deregister merchant with ID: " + merchantId);
+                String response = merchantService.deregister(merchantId);
+                System.out.println("Deregister merchant response: " + response);
+                String replyTo = delivery.getProperties().getReplyTo();
+                if (replyTo != null && !replyTo.isBlank()) {
+                    String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println("Sending deregister response: " + response + " to " + replyTo);
+                    sendResponse(channel, replyTo, correlationId, response);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        channel.basicConsume(customerDeregisterQueue, true, customerDeregisterCallback, consumerTag -> {
+        });
+        channel.basicConsume(merchantDeregisterQueue, true, merchantDeregisterCallback, consumerTag -> {
         });
 
     }

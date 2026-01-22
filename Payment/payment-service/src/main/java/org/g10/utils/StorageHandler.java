@@ -58,4 +58,10 @@ public class StorageHandler {
                 .filter(p -> merchantId.equals(p.get("merchantId")))
                 .collect(Collectors.toList());
     }
+    
+    public synchronized void clear() {
+        customerStorage.clear();
+        merchantStorage.clear();
+        payments.clear();
+    }
 }
