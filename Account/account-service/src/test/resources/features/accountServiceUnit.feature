@@ -1,3 +1,4 @@
+@unit
 Feature: Account service unit behavior
 
   Scenario: Register customer directly via service

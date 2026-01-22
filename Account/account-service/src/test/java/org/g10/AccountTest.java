@@ -11,7 +11,6 @@ import org.g10.DTO.CustomerDTO;
 import org.g10.DTO.MerchantDTO;
 import org.g10.services.AccountConsumer;
 import org.g10.services.AccountServiceApplication;
-import org.g10.services.CustomerService;
 import org.g10.services.MerchantService;
 
 import com.rabbitmq.client.AMQP;
@@ -81,7 +80,7 @@ public class AccountTest {
         try {
             String correlationId = java.util.UUID.randomUUID().toString();
             String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
-            CompletableFuture <String> future = new CompletableFuture<>();
+            CompletableFuture<String> future = new CompletableFuture<>();
             String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
                 if (correlationId.equals(message.getProperties().getCorrelationId())) {
                     future.complete(new String(message.getBody()));
@@ -99,7 +98,8 @@ public class AccountTest {
             customer_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             System.out.println("Received response: " + customer_result);
             channel.basicCancel(consumerTag);
-        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException |
+                 java.util.concurrent.TimeoutException e) {
             e.printStackTrace();
         }
     }
@@ -135,7 +135,7 @@ public class AccountTest {
         try {
             String correlationId = java.util.UUID.randomUUID().toString();
             String replyQueue = channel.queueDeclare("", false, true, true, null).getQueue();
-            CompletableFuture <String> future = new CompletableFuture<>();
+            CompletableFuture<String> future = new CompletableFuture<>();
             String consumerTag = channel.basicConsume(replyQueue, true, (tag, message) -> {
                 if (correlationId.equals(message.getProperties().getCorrelationId())) {
                     future.complete(new String(message.getBody()));
@@ -153,7 +153,8 @@ public class AccountTest {
             merchant_result = future.get(5, java.util.concurrent.TimeUnit.SECONDS); // Wait for the response
             System.out.println("Received Merchant response: " + merchant_result);
             channel.basicCancel(consumerTag);
-        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+        } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException |
+                 java.util.concurrent.TimeoutException e) {
             e.printStackTrace();
         }
     }
@@ -205,7 +206,8 @@ public class AccountTest {
                 merchantResults.put(merchantName, result);
                 System.out.println("Registered merchant " + merchantName + ": " + result);
                 channel.basicCancel(consumerTag);
-            } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            } catch (IOException | InterruptedException | java.util.concurrent.ExecutionException |
+                     java.util.concurrent.TimeoutException e) {
                 e.printStackTrace();
             }
         }
@@ -217,15 +219,15 @@ public class AccountTest {
             Thread.sleep(2000); // Wait for the message to be processed
             consumer = app.getConsumer();
             MerchantService service = consumer.getMerchantService();
-            
+
             // Get the result ID for this specific merchant
             String merchantId = merchantResults.get(merchantName);
             assertNotNull(merchantId, "No result found for merchant: " + merchantName);
-            
+
             // Verify that the merchant was created in the service
             MerchantDTO expectedMerchant = merchants.get(merchantName);
             MerchantDTO actualMerchant = service.getMerchant(merchantId);
-            
+
             assertNotNull(actualMerchant);
             assertEquals(expectedMerchant.getFirstName(), actualMerchant.getFirstName());
             assertEquals(expectedMerchant.getLastName(), actualMerchant.getLastName());

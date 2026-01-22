@@ -1,3 +1,4 @@
+@service
 Feature: Payment consumer persists payment events
   In order to keep track of payments sent through the queue
   As the payment service
