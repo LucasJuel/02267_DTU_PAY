@@ -3,8 +3,8 @@ package org.g10;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -15,7 +15,6 @@ import org.g10.Services.TokenService;
 import org.g10.Services.TokenServiceApplication;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,8 +23,6 @@ public class TokenSteps {
 
     TokenProducer producer = new TokenProducer();
 
-    List<String> customerTokens;
-
     TokenDTO lastResponse;
 
     String usedToken;
@@ -33,33 +30,42 @@ public class TokenSteps {
     int currentTokens;
     TokenService tokenService = new TokenService();
     String customerId = "Customer123";
+    ConnectionFactory factory;
+    Connection connection;
+    Channel channel;
 
-    private TokenServiceApplication app;
+    private Thread thread;
+    private static boolean started = false;
 
     public TokenSteps() throws IOException, TimeoutException {
     }
 
     @Before
     public void setup() throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
+
+        if (!started) {
+            thread = new Thread(() -> {
+                try {
+                    TokenServiceApplication.main(new String[]{});
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            });
+            thread.setDaemon(true);
+            thread.start();
+            started = true;
+
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
+        }
+        factory = new ConnectionFactory();
         factory.setHost("localhost");
         factory.setPort(5672);
         factory.setUsername("guest");
         factory.setPassword("guest");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+        connection = factory.newConnection();
+        connection.createChannel();
+        channel = connection.createChannel();
         channel.queueDeclare("token.requests", true, false, false, null);
-
-        Thread thread = new Thread(() -> {
-            app = new TokenServiceApplication();
-            TokenServiceApplication.main(new String[]{});
-        });
-        thread.start();
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
     @Given("a registered customer {string} without tokens")
     public void aRegisteredCustomerWithoutTokens(String cID) throws Exception {
@@ -126,6 +132,7 @@ public class TokenSteps {
         validation.setType("VALIDATE_TOKEN");
         validation.setToken(usedToken);
         lastResponse = producer.sendTokenRequest(validation);
+        System.out.println(lastResponse.getErrorMSG());
 
         assertEquals("SUCCESS", lastResponse.getType(), "Token was not successful");
 
@@ -138,6 +145,7 @@ public class TokenSteps {
         validation.setToken(usedToken);
 
         lastResponse = producer.sendTokenRequest(validation);
+        System.out.println(lastResponse.getErrorMSG());
 
         assertEquals("ERROR", lastResponse.getType());
     }
@@ -149,7 +157,7 @@ public class TokenSteps {
 
     @Given("a registered merchant")
     public void aRegisteredMerchant() {
-        assert(true);
+        // We assume the merchant is correctly registered in this test
     }
 
 
@@ -159,6 +167,21 @@ public class TokenSteps {
         request.setType("VALIDATE_TOKEN");
         request.setToken(token);
         lastResponse = producer.sendTokenRequest(request);
+
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if (channel != null && channel.isOpen()) {
+            channel.close();
+        }
+        if (connection != null && connection.isOpen()) {
+            connection.close();
+        }
+
+        factory = null;
+        connection = null;
+        channel = null;
 
     }
 }

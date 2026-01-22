@@ -25,10 +25,6 @@ public class TokenStorage {
         return false;
     }
 
-    public List<String> getCustomerTokens(String customerId) {
-        return customerTokens.get(customerId);
-    }
-
     public void addTokens(String customerId, int numberOfTokens) {
         List<String> currentTokens = customerTokens.computeIfAbsent(customerId, k -> new ArrayList<>());
 
@@ -38,14 +34,8 @@ public class TokenStorage {
             tokenCustomers.put(token, customerId);
         }
     }
-
     public String getCustomerFromToken(String token) {
         return tokenCustomers.get(token);
-    }
-
-    public void clear() {
-        customerTokens.clear();
-        tokenCustomers.clear();
     }
 
     public void removeAllCustomerTokens(String customerId) {

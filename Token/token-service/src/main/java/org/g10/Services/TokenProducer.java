@@ -65,7 +65,11 @@ public class TokenProducer implements AutoCloseable {
 
         String cTag = channel.basicConsume(temporaryQueue, true, (consumerTag, delivery) -> {
             if (delivery.getProperties().getCorrelationId().equals(correlationID)) {
-                responseQueue.offer(new String(delivery.getBody(), StandardCharsets.UTF_8));
+                if (responseQueue.offer(new String(delivery.getBody(), StandardCharsets.UTF_8))) {
+                    System.out.println("Sent token response");
+                } else {
+                    System.err.println("responseQueue.offer() failed");
+                }
             }
         }, consumerTag -> { });
 

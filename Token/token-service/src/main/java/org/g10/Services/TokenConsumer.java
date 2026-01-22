@@ -7,7 +7,6 @@ import org.g10.DTO.TokenDTO;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeoutException;
 
 public class TokenConsumer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
@@ -26,10 +25,10 @@ public class TokenConsumer implements AutoCloseable {
     private final TokenService tokenService = new TokenService();
     private Connection connection;
     private Channel channel;
-    public TokenConsumer() throws IOException, TimeoutException {
+    public TokenConsumer() {
         this(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
-                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnvInt(),
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 getEnv("RABBITMQ_QUEUE_TOKEN", DEFAULT_QUEUE_TOKEN)
@@ -50,15 +49,15 @@ public class TokenConsumer implements AutoCloseable {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private static int getEnvInt(String key, int fallback) {
-        String value = System.getenv(key);
+    private static int getEnvInt() {
+        String value = System.getenv("RABBITMQ_PORT");
         if (value == null || value.isBlank()) {
-            return fallback;
+            return TokenConsumer.DEFAULT_PORT;
         }
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            return fallback;
+            return TokenConsumer.DEFAULT_PORT;
         }
     }
 
@@ -85,8 +84,10 @@ public class TokenConsumer implements AutoCloseable {
                         boolean status = tokenService.requestAddTokens(request.getCustomerID(), request.getAmount());
                         if (status) {
                             response.setType("SUCCESS");
+                            response.setErrorMSG("ADD TOKENS SUCCEEDED");
                         } else {
                             response.setType("ERROR");
+                            response.setErrorMSG("ADD TOKENS FAILED");
                         }
                         break;
 
@@ -95,14 +96,16 @@ public class TokenConsumer implements AutoCloseable {
                         if (customerID != null) {
                             response.setCustomerID(customerID);
                             response.setType("SUCCESS");
+                            response.setErrorMSG("VALIDATE TOKEN SUCCEEDED");
                             break;
                         }
                         response.setType("ERROR");
+                        response.setErrorMSG("VALIDATE TOKEN FAILED");
                         break;
 
                     default:
                         response.setType("ERROR");
-                        response.setErrorMSG("Unknown request type: " + request.getType());
+                        response.setErrorMSG("UNKNOWN REQUEST TYPE: " + request.getType());
                 }
 
             } catch (Exception e) {

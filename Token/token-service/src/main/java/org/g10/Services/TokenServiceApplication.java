@@ -13,7 +13,4 @@ public class TokenServiceApplication {
             System.exit(1);
         }
     }
-    public TokenConsumer getConsumer(){
-        return consumer;
-    }
 }

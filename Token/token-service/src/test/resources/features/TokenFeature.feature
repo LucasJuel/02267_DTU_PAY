@@ -32,11 +32,11 @@ Feature: Token Management
 
   Scenario: Merchant attempts to process a payment with a fake token
     Given a registered merchant
-    When the merchant attempts to process a payment with token "fake-token-123"
+    When the merchant attempts to process a payment with token "fakeToken123"
     Then the request is denied
 
   Scenario: Customer requests tokens that would exceed the maximum limit
-    Given a registered customer "cid-123" without tokens
+    Given a registered customer "c123" without tokens
     When the customer requests 2 tokens
     And the customer pays a merchant using one token
     Then the customer now has 1 unused tokens
