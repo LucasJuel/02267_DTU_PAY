@@ -10,9 +10,9 @@ build:
 	mvn -DskipTests package
 
 test-service:
-	mvn -P service-tests verify
+	mvn test
 
 test-e2e:
-	SERVER_URL=http://localhost:8080 mvn -P e2e -pl e2e-tests -am verify
+	SERVER_URL=http://localhost:8080 mvn -pl e2e-tests -am test
 
 test-all: test-service test-e2e

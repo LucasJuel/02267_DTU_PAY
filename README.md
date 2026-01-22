@@ -9,12 +9,12 @@ docker compose up -d --build
 
 ### Unit + service tests
 ```
-mvn -P service-tests verify
+mvn test
 ```
 
 ### E2E tests
 ```
-SERVER_URL=http://localhost:8080 mvn -P e2e -pl e2e-tests -am verify
+SERVER_URL=http://localhost:8080 mvn -pl e2e-tests -am test
 ```
 
 ### Stop services

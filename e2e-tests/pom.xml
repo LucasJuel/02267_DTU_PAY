@@ -14,7 +14,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <cucumber.version>7.15.0</cucumber.version>
-        <failsafe-plugin.version>3.5.4</failsafe-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -59,25 +58,4 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>e2e</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

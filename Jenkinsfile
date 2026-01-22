@@ -21,21 +21,19 @@ pipeline {
         }
         stage('3. Run Unit + Service Tests') {
             steps {
-                sh 'mvn -P service-tests verify'
+                sh 'mvn test'
             }
         }
         stage('4. Run E2E Tests') {
             steps {
-                sh 'SERVER_URL=http://localhost:8080 mvn -P e2e -pl e2e-tests -am verify'
+                sh 'SERVER_URL=http://localhost:8080 mvn -pl e2e-tests -am test'
             }
         }
     }
     post {
         always {
             sh "find . -path '*/target/surefire-reports/*.xml' -print || true"
-            sh "find . -path '*/target/failsafe-reports/*.xml' -print || true"
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-            junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'
             sh 'docker compose down'
         }
     }
