@@ -15,5 +15,6 @@
         <module>Client/dtu-pay-client</module>
         <module>e2e-tests</module>
         <module>Payment/payment-service</module>
+        <module>Token/token-service</module>
     </modules>
 </project>
