@@ -40,3 +40,9 @@ Feature: RabbitMQ producers
     And a merchant with id "merch-001"
     When I make a request for a report of payments for the merchant
     Then the report of payments is returned successfully
+
+  Scenario: Manager called for report of all payments
+    Given a RabbitMQ connection
+    And the manager requests a report
+    When I make a request for a report of all payments for the manager
+    Then the manager report is returned successfully
