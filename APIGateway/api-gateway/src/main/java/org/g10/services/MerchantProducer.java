@@ -62,6 +62,24 @@ public class MerchantProducer implements AutoCloseable {
         }
     }
 
+    public String publishMerchantDeleted(String merchantId) throws IOException {
+        try{
+            JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+            jsonBuilder.add("merchantId", merchantId);
+            String message = jsonBuilder.build().toString();
+
+            PublishWait publishWait = new PublishWait(
+                    queueName,
+                    MERCHANT_REPLY_QUEUE,
+                    channel,
+                    message
+            );
+            return publishWait.getResponse();
+        } catch(Exception e){
+            return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
+        }
+    }
+
     @Override
     public void close() throws IOException, TimeoutException {
         if (channel != null && channel.isOpen()) {

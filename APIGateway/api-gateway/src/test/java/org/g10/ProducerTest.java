@@ -118,6 +118,34 @@ public class ProducerTest {
         assertEquals(36, returnedId.length());
     }
 
+    @When("I make a request to deregister the customer from DTU Pay")
+    public void i_make_a_request_to_deregister_the_customer_from_dtu_pay() throws Exception {
+        // First register the customer to get an ID
+        returnedId = customerProducer.publishCustomerRegistered(customer);
+        // Then deregister using that ID
+        returnedId = customerProducer.publishCustomerDeleted(returnedId);
+    }
+
+    @Then("the customer is deregistered successfully")
+    public void the_customer_is_deregistered_successfully() {
+        assertNotNull(returnedId);
+        System.out.println("Deregistration response: " + returnedId);
+    }
+
+    @When("I make a request to deregister the merchant from DTU Pay")
+    public void i_make_a_request_to_deregister_the_merchant_from_dtu_pay() throws Exception {
+        // First register the merchant to get an ID
+        returnedId = merchantProducer.publishMerchantRegistered(merchant);
+        // Then deregister using that ID
+        returnedId = merchantProducer.publishMerchantDeleted(returnedId);
+    }
+
+    @Then("the merchant is deregistered successfully")
+    public void the_merchant_is_deregistered_successfully() {
+        assertNotNull(returnedId);
+        System.out.println("Deregistration response: " + returnedId);
+    }
+
     @When("I publish {string} to the rabbit test queue")
     public void iPublishToTheRabbitTestQueue(String message) throws Exception {
         channel.basicPublish("", QUEUE_NAME, null, message.getBytes(StandardCharsets.UTF_8));

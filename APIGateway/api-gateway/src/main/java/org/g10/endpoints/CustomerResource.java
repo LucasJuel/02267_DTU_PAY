@@ -63,7 +63,7 @@ public class CustomerResource extends AbstractResource{
                     .entity("{\"error\": \"customerId is required.\"}")
                     .build();
         }
-        return handleRegister(customerId, () -> {
+        return handleDeregister(customerId, () -> {
             try (CustomerProducer producer = new CustomerProducer()) {
                 String response = producer.publishCustomerDeleted(customerId);
                 return Response.accepted()
