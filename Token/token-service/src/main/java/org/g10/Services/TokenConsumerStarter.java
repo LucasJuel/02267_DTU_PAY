@@ -6,7 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import org.g10.Services.TokenConsumer;
 /**
- @author LucasJuel
+ @author BertramKjær
  **/
 
 @ApplicationScoped

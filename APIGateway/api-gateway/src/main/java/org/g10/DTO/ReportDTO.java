@@ -3,6 +3,7 @@ package org.g10.DTO;
  @author ssschoubye
  **/
 
+
 public class ReportDTO {
     private String accountId;
     private String accountType;

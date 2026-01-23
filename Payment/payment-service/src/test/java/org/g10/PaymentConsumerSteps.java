@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  @author gh05tdog
  **/
+
 public class PaymentConsumerSteps {
     private PaymentDTO paymentDTO = new PaymentDTO();
     private final BankService bank = new BankService_Service().getBankServicePort();

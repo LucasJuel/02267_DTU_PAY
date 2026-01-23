@@ -8,8 +8,9 @@ import org.g10.DTO.TokenDTO;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 /**
- @author TheZoap
+ @author Martin-Surlykke
  **/
+
 public class TokenConsumer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

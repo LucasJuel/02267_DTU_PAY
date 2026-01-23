@@ -9,8 +9,9 @@ import org.g10.DTO.MerchantDTO;
 import org.g10.utils.PublishWait;
 
 /**
- @author gh05tdog
+ @author TheZoap
  **/
+
 public class MerchantProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

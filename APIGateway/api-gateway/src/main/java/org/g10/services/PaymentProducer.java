@@ -11,8 +11,9 @@ import org.g10.DTO.PaymentDTO;
 import org.g10.DTO.TokenDTO;
 import org.g10.utils.PublishWait;
 /**
- @author Martin-Surlykke
+ @author LucasJuel
  **/
+
 
 public class PaymentProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";

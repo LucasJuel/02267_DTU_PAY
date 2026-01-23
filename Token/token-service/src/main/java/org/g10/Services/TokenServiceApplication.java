@@ -1,7 +1,7 @@
 package org.g10.Services;
 
 /**
- @author BertramKjær
+ @author gh05tdog
  **/
 public class TokenServiceApplication {
     private static TokenConsumer consumer;

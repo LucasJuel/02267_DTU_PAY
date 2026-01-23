@@ -1,6 +1,6 @@
 package org.g10.services;
 /**
- @author BertramKjær
+ @author gh05tdog
  **/
 public class AccountServiceApplication {
     private static AccountConsumer consumer;

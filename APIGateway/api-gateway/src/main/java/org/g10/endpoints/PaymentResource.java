@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.Response;
 import org.g10.services.PaymentProducer;
 import org.g10.DTO.PaymentDTO;
 /**
- @author ssschoubye
+ @author BertramKjær
  **/
 
 @Path("/payment")

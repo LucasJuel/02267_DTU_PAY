@@ -15,9 +15,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 /**
- @author ssschoubye
+ @author Martin-Surlykke
  **/
-
 public class TokenProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

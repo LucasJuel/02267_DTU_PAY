@@ -9,8 +9,9 @@ import static io.cucumber.core.options.Constants.FEATURES_PROPERTY_NAME;
 import static io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
 import static io.cucumber.junit.platform.engine.Constants.FILTER_TAGS_PROPERTY_NAME;
 /**
- @author ssschoubye
+ @author BertramKjær
  **/
+
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
