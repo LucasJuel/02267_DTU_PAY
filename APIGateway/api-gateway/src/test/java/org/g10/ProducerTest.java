@@ -81,8 +81,7 @@ public class ProducerTest {
 
     @BeforeAll
     public static void globalSetUp() {
-        System.out.println("GLOBAL SETUP STARTED");
-        System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST));
+
     }
 
     @Before
@@ -174,7 +173,6 @@ public class ProducerTest {
 
     @Then("the customer is registered successfully")
     public void the_customer_is_registered_successfully() throws Exception {
-        System.out.println("Returned ID: " + returnedId);
         assertTrue(returnedId.length() == 36);
     }
 
@@ -201,7 +199,7 @@ public class ProducerTest {
     @Then("the merchant is registered successfully")
     public void the_merchant_is_registered_successfully() {
         try{
-            System.out.println("Returned ID: " + returnedId);
+       
             assertTrue(returnedId.length() == 36);
         } catch (Exception e){
             throw new RuntimeException(e);
@@ -220,7 +218,7 @@ public class ProducerTest {
     @Then("the customer is deregistered successfully")
     public void the_customer_is_deregistered_successfully() {
         assertNotEquals("Failure!", returnedId);
-        System.out.println("Deregistration response: " + returnedId);
+ 
     }
 
     @When("I make a request to deregister the merchant from DTU Pay")
@@ -234,7 +232,7 @@ public class ProducerTest {
     @Then("the merchant is deregistered successfully")
     public void the_merchant_is_deregistered_successfully() {
         assertNotEquals("Failure!", returnedId);
-        System.out.println("Deregistration response: " + returnedId);
+
     }
 
     @When("I publish {string} to the rabbit test queue")
@@ -291,7 +289,7 @@ public class ProducerTest {
 
     @Then("the report of payments is returned successfully")
     public void the_report_of_payments_is_returned_successfully() {
-        System.out.println("Returned response: " + returnedId);
+
         assertNotNull(returnedId, "Response should not be null");
         
         // Parse the JSON array response
@@ -326,7 +324,7 @@ public class ProducerTest {
 
     @Then("the manager report is returned successfully")
     public void the_manager_report_is_returned_successfully() {
-        System.out.println("Returned response: " + returnedId);
+   
         assertNotNull(returnedId, "Response should not be null");
 
         Gson gson = new Gson();
@@ -503,7 +501,7 @@ public class ProducerTest {
         try {
             returnedId = paymentProducer.publishPaymentRequested(payment);
         } catch (Exception e) {
-            System.out.println("Exception occurred while registering payment: " + e.getMessage());
+
             e.printStackTrace();
         }
     }
