@@ -114,7 +114,18 @@ public class TokenConsumer implements AutoCloseable {
                         response.setType("ERROR");
                         response.setErrorMSG("TOKEN RETRIEVAL FAILED");
                         break;
+                    
+                    case "CLEAR_TOKENS":
+                        try{
+                            tokenService.clearStorage();
+                            response.setType("SUCCESS");                            
+                        } catch(Exception e){
+                            response.setType("ERROR");
+                            response.setErrorMSG("CLEAR TOKENS FAILED: " + e.getMessage());
+                        }
 
+
+                        break;
                     default:
                         response.setType("ERROR");
                         response.setErrorMSG("UNKNOWN REQUEST TYPE: " + request.getType());

@@ -46,6 +46,7 @@ public class ProducerTest {
     private static final String TOKEN_QUEUE = "token.requests";
     private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
     private static final String DEFAULT_QUEUE_MERCHANT_DEREGISTER = "account.merchant.deregister";
+    private static final String DEFAULT_QUEUE_GET_CUSTOMER = "account.customer.get";
 
     private static final String QUEUE_NAME = "rabbit.test";
     private String EXPECTED_MESSAGE;
@@ -103,7 +104,8 @@ public class ProducerTest {
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 CUSTOMER_QUEUE,
-                DEFAULT_QUEUE_CUSTOMER_DEREGISTER
+                DEFAULT_QUEUE_CUSTOMER_DEREGISTER,
+                DEFAULT_QUEUE_GET_CUSTOMER
         );
         merchantProducer = new MerchantProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
@@ -131,6 +133,11 @@ public class ProducerTest {
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 PAYMENT_QUEUE
          );
+
+
+        TokenDTO clearRequest = new TokenDTO();
+        clearRequest.setType("CLEAR_TOKENS"); 
+        tokenProducer.sendTokenRequest(clearRequest);
     }
 
 
@@ -153,8 +160,11 @@ public class ProducerTest {
 
     @When("I make a request to register the customer in DTU Pay")
     public void i_make_a_request_to_register_the_customer_in_dtu_pay() throws Exception {
+
         try{
             returnedId = customerProducer.publishCustomerRegistered(customer);
+            tokenCustomerID = returnedId;
+
         } catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -426,6 +436,13 @@ public class ProducerTest {
         } catch (BankServiceException_Exception e) {
             throw new RuntimeException(e);
         }
+
+        customer = new CustomerDTO();
+        customer.setBankAccountId(customerAccountId);
+        customer.setCpr(string3);
+        customer.setFirstName(string);
+        customer.setLastName(string2);
+
         accounts.add(customerAccountId);
 
 
@@ -443,16 +460,38 @@ public class ProducerTest {
         } catch (BankServiceException_Exception e) {
             throw new RuntimeException(e);
         }
+
+        merchant = new MerchantDTO();
+        merchant.setBankAccountId(merchantAccountId);
+        merchant.setCpr(string3);
+        merchant.setFirstName(string);
+        merchant.setLastName(string2);
+
         accounts.add(merchantAccountId);
 
 
 
     }
+
+    @And("the customer provides the merchant with a token for payment")
+    public void theCustomerProvidesTheMerchantWithATokenForPayment() {
+        TokenDTO request = new TokenDTO();
+        request.setType("GET_TOKEN");
+        request.setCustomerID(tokenCustomerID);
+        try {
+            lastTokenResponse = tokenProducer.sendTokenRequest(request);
+            usedToken = lastTokenResponse.getToken();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Given("a transaction between the customer and the merchant is initiated with amount {float} kr and message {string}")
     public void a_transaction_between_the_customer_and_the_merchant_is_initiated_with_amount_kr_and_message(Float float1, String string) {
+    
         payment = new PaymentDTO();
         payment.setAmount(float1);
-        payment.setCustomerAccountId(customerAccountId);
+        payment.setCustomerToken(usedToken);
         payment.setMerchantAccountId(merchantAccountId);
         payment.setMessage(string);
 
@@ -501,7 +540,7 @@ public class ProducerTest {
 
     @Then("the payment service should respond with an invalid customer account message")
     public void the_payment_service_should_respond_with_an_invalid_customer_account_message() {
-        assertEquals("{\"error\": \"Failed to process payment:\"}", returnedId);
+        assertEquals("{\"error\": \"Failed to process payment:\" Account not found\" }", returnedId);
     }
 
 

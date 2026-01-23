@@ -21,6 +21,7 @@ public class AccountConsumer implements AutoCloseable {
     private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
     private static final String DEFAULT_QUEUE_MERCHANT_DEREGISTER = "account.merchant.deregister";
     private static final String DEFAULT_QUEUE_REPORTING = "reporting.requests";
+    private static final String DEFAULT_QUEUE_GET_CUSTOMER = "account.customer.get";
 
     private final String rabbitHost;
     private final int rabbitPort;
@@ -31,6 +32,7 @@ public class AccountConsumer implements AutoCloseable {
     private final String customerDeregisterQueue;
     private final String merchantDeregisterQueue;
     private final String reportingQueue;
+    private final String getCustomerQueue;
 
     private final Gson gson = new Gson();
     private final CustomerService customerService = new CustomerService();
@@ -47,12 +49,13 @@ public class AccountConsumer implements AutoCloseable {
                 getEnv("RABBITMQ_QUEUE_CUSTOMER", DEFAULT_QUEUE_CUSTOMER),
                 getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", DEFAULT_QUEUE_CUSTOMER_DEREGISTER),
                 getEnv("RABBITMQ_QUEUE_MERCHANT_DEREGISTER", DEFAULT_QUEUE_MERCHANT_DEREGISTER),
-                getEnv("RABBITMQ_QUEUE_REPORTING", DEFAULT_QUEUE_REPORTING)
+                getEnv("RABBITMQ_QUEUE_REPORTING", DEFAULT_QUEUE_REPORTING),
+                getEnv("RABBITMQ_QUEUE_GET_CUSTOMER", DEFAULT_QUEUE_GET_CUSTOMER)
         );
     }
 
     public AccountConsumer(String rabbitmqHost, int rabbitmqPort, String rabbitmqUser, String rabbitmqPassword, String rabbitmqQueue
-            , String rabbitmqQueueCustomer, String customerDeregisterQueue, String merchantDeregisterQueue, String rabbitmqQueueReporting) {  
+            , String rabbitmqQueueCustomer, String customerDeregisterQueue, String merchantDeregisterQueue, String rabbitmqQueueReporting, String getCustomerQueue) {  
         this.rabbitHost = rabbitmqHost;
         this.rabbitPort = rabbitmqPort;
         this.rabbitUser = rabbitmqUser;
@@ -62,6 +65,7 @@ public class AccountConsumer implements AutoCloseable {
         this.customerDeregisterQueue = customerDeregisterQueue;
         this.merchantDeregisterQueue = merchantDeregisterQueue;
         this.reportingQueue = rabbitmqQueueReporting;
+        this.getCustomerQueue = getCustomerQueue;
     }
 
     public void startListening() throws Exception {
@@ -74,6 +78,7 @@ public class AccountConsumer implements AutoCloseable {
         Channel channel = connection.createChannel();
         channel.queueDeclare(customerQueue, true, false, false, null);
         channel.queueDeclare(merchantQueue, true, false, false, null);
+        channel.queueDeclare(getCustomerQueue, true, false, false, null);
         channel.queueDeclare(customerDeregisterQueue, true, false, false, null);
         channel.queueDeclare(merchantDeregisterQueue, true, false, false, null);
         channel.queueDeclare(reportingQueue, true, false, false, null);
@@ -95,6 +100,25 @@ public class AccountConsumer implements AutoCloseable {
                 e.printStackTrace();
             }
         };
+        DeliverCallback getCustomerCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [CUSTOMER] Received '" + message + "'");
+            try {
+                // Parse JSON to extract customerId
+                com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
+                String customerId = jsonObject.get("customerId").getAsString();
+                String response = gson.toJson(customerService.getCustomer(customerId));
+                String replyTo = delivery.getProperties().getReplyTo();
+                if (replyTo != null && !replyTo.isBlank()) {
+                    String correlationId = delivery.getProperties().getCorrelationId();
+                    System.out.println(" [CUSTOMER] Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
+                    sendResponse(channel, replyTo, correlationId, response);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
         DeliverCallback merchantCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
             System.out.println(" [MERCHANT] Received '" + message + "'");
@@ -116,6 +140,8 @@ public class AccountConsumer implements AutoCloseable {
         channel.basicConsume(customerQueue, true, customerCallback, consumerTag -> {
         });
         channel.basicConsume(merchantQueue, true, merchantCallback, consumerTag -> {
+        });
+        channel.basicConsume(getCustomerQueue, true, getCustomerCallback, consumerTag -> {
         });
 
         DeliverCallback customerDeregisterCallback = (consumerTag, delivery) -> {
