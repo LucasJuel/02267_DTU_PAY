@@ -50,21 +50,21 @@ public class OuterBlackboxSteps {
         // No-op: environment is expected to be up (docker-compose in CI or local).
     }
 
-    @Given("a customer is created in the bank with balance {int} kr")
-    public void aCustomerIsCreatedInTheBank(int balance) throws BankServiceException_Exception {
-        customer.setFirstName("Blackbox");
-        customer.setLastName("Customer");
-        customer.setCprNumber("115928-1111");
-        customerAccountId = bank.createAccountWithBalance(apiKey, customer, new BigDecimal(balance));
+    @Given("a customer with firstName {string} lastName {string} CPR {string} is created in the bank with balance {int} kr")
+    public void a_customer_with_first_name_last_name_cpr_is_created_in_the_bank_with_balance_kr(String string, String string2, String string3, Integer int1) throws BankServiceException_Exception {
+        customer.setFirstName(string);
+        customer.setLastName(string2);
+        customer.setCprNumber(string3);
+        customerAccountId = bank.createAccountWithBalance(apiKey, customer, new BigDecimal(int1));
         accounts.add(customerAccountId);
     }
 
-    @Given("a merchant is created in the bank with balance {int} kr")
-    public void aMerchantIsCreatedInTheBank(int balance) throws BankServiceException_Exception {
-        merchant.setFirstName("Blackbox");
-        merchant.setLastName("Merchant");
-        merchant.setCprNumber("222204-2222");
-        merchantAccountId = bank.createAccountWithBalance(apiKey, merchant, new BigDecimal(balance));
+    @Given("a merchant with firstName {string} lastName {string} CPR {string} is created in the bank with balance {int} kr")
+    public void a_merchant_with_first_name_last_name_cpr_is_created_in_the_bank_with_balance_kr(String string, String string2, String string3, Integer int1) throws BankServiceException_Exception {
+        merchant.setFirstName(string);
+        merchant.setLastName(string2);
+        merchant.setCprNumber(string3);
+        merchantAccountId = bank.createAccountWithBalance(apiKey, merchant, new BigDecimal(int1));
         accounts.add(merchantAccountId);
     }
 
@@ -147,7 +147,7 @@ public class OuterBlackboxSteps {
     }
     @Then("the payment is rejected with an error message indicating invalid token")
     public void the_payment_is_rejected_with_an_error_message_indicating_invalid_token() {
-
+        assertEquals("{\"error\": \"Failed to process payment: Account not found\" }", response.body());
     }
 
     private void awaitBalance(String accountId, BigDecimal expected) throws Exception {

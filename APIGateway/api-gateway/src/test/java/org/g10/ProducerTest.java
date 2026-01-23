@@ -542,7 +542,7 @@ public class ProducerTest {
 
     @Then("the payment service should respond with an invalid customer account message")
     public void the_payment_service_should_respond_with_an_invalid_customer_account_message() {
-        assertEquals("{\"error\": \"Failed to process payment:\" Account not found\" }", returnedId);
+        assertEquals("{\"error\": \"Failed to process payment: Account not found\" }", returnedId);
     }
 
 

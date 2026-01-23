@@ -2,7 +2,6 @@ package org.g10.services;
 
 import dtu.ws.fastmoney.BankService;
 import dtu.ws.fastmoney.BankService_Service;
-import dtu.ws.fastmoney.BankServiceException_Exception;
 
 import org.g10.DTO.PaymentDTO;
 import org.g10.utils.StorageHandler;

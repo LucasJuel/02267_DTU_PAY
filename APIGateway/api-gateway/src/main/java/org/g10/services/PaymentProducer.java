@@ -94,8 +94,7 @@ public class PaymentProducer implements AutoCloseable {
             bankAccountId = customerProducer.publishGetCustomer(customerId).getBankAccountId();
 
         } catch (Exception e){
-            return "{\"error\": \"Failed to process payment:\" Account not found\" }";
-                     
+            return "{\"error\": \"Failed to process payment: Account not found\" }";
         }
         System.out.println("Customer ID from token: " + customerId);
 

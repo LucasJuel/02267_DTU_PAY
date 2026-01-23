@@ -28,9 +28,9 @@ public class    MerchantResource extends AbstractResource {
         }
         return handleRegister(request, () -> {
             try (MerchantProducer producer = new MerchantProducer()) {
-                producer.publishMerchantRegistered(request);
+                String response = producer.publishMerchantRegistered(request);
                 return Response.accepted()
-                        .entity("{\"status\": \"queued\"}")
+                        .entity(response)
                         .build();
             } catch (Exception e) {
                 throw new RuntimeException(e);

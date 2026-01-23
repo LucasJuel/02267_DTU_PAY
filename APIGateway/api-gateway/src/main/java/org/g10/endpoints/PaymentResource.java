@@ -29,9 +29,9 @@ public class PaymentResource {
 
         try {
             try (PaymentProducer producer = new PaymentProducer()) {
-                producer.publishPaymentRequested(request);
+                String response = producer.publishPaymentRequested(request);
                 return Response.accepted()
-                        .entity("{\"status\": \"queued\"}")
+                        .entity(response)
                         .build();
             }
         } catch (Exception e) {
