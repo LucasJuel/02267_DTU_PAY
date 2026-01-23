@@ -37,7 +37,6 @@ public class SimpleDtuPay {
             );
 
             HttpResponse<String> response = apiCall.post("/customer", jsonBody);
-            System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
             responseMap.put("body", response.body());
@@ -66,7 +65,6 @@ public class SimpleDtuPay {
             );
 
             HttpResponse<String> response = apiCall.post("/merchant", jsonBody);
-            System.out.println("Registration response from bank: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
             responseMap.put("body", response.body());
@@ -88,9 +86,7 @@ public class SimpleDtuPay {
             HashMap<String, Object> customer = getCustomer(customerId);
             HashMap<String, Object> merchant = getMerchant(merchantId);
 
-            System.out.println("Customer fetch status: " + customer.get("status"));
-            System.out.println("Merchant fetch status: " + merchant.get("status"));
-
+   
             int statusCode = (int) customer.get("status");
             int merchantStatusCode = (int) merchant.get("status");
 
@@ -107,10 +103,8 @@ public class SimpleDtuPay {
                 return responseMap;
             }
             String jsonBody = String.format(java.util.Locale.US, "{\"customerAccountId\":\"%s\",\"merchantAccountId\":\"%s\",\"amount\":%.2f,\"message\":\"%s\"}", customerId, merchantId, amount, description);
-            System.out.println("Payment request body: " + jsonBody);
             HttpResponse<String> response = apiCall.post("/payment", jsonBody);
             
-            System.out.println("Payment response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             if (response.statusCode() == 200) {
                 responseMap.put("message", "Payment successful for amount " + amount);
@@ -128,7 +122,6 @@ public class SimpleDtuPay {
     private HashMap<String, Object> getCustomer(String customerId) {
         try {
             HttpResponse<String> response = apiCall.get("/customer/" + customerId);
-            System.out.println("Get Customer response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
             
@@ -153,7 +146,6 @@ public class SimpleDtuPay {
     private HashMap<String, Object> getMerchant(String merchantId) {       
         try {
             HttpResponse<String> response = apiCall.get("/merchant/" + merchantId);
-            System.out.println("Get Merchant response: " + response.body());
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("status", response.statusCode());
             

@@ -13,7 +13,7 @@ import jakarta.ws.rs.core.Response;
 public class CustomerReportResource extends AbstractResource {
     @POST
     public Response generateReport(@jakarta.ws.rs.PathParam("id") String id) {
-        System.out.println("Received request to get report for customer with ID: " + id);
+     
         if (id == null || id.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"customerId is required.\"}")
@@ -43,7 +43,7 @@ public class CustomerReportResource extends AbstractResource {
 class MerchantReportResource extends AbstractResource {
     @POST
     public Response generateReport(@jakarta.ws.rs.PathParam("id") String id) {
-        System.out.println("Received request to get report for merchant with ID: " + id);
+ 
         if (id == null || id.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"merchantId is required.\"}")
@@ -73,7 +73,7 @@ class MerchantReportResource extends AbstractResource {
 class ManagerReportResource extends AbstractResource {
     @POST
     public Response generateManagerReport() {
-        System.out.println("Received request to get report for manager");
+ 
         try {
             try (ReportingProducer producer = new ReportingProducer()) {
                 ReportDTO report = new ReportDTO("manager", "manager");

@@ -58,3 +58,22 @@ Feature: Payment consumer persists payment events
     When I register both payments with the payment service
     Then I request all payments for merchant "torstenTO"
     And I should receive a list containing both payment events with correct details
+
+
+  Scenario: Get all payments for a specific customer
+    Given the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "torsten" lastname "torstenTO" with cpr "87654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 25 kr and message "Payment for 25 kr initiated"
+    And another transaction between the customer and the merchant is initiated with amount 40 kr and message "Payment for 40 kr initiated"
+    When I register both payments with the payment service
+    Then I request all payments for customer "vivian larsen"
+    And I should receive a list containing both payment events with correct details
+
+  Scenario: Get all payments for a manager
+    Given the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "torsten" lastname "torstenTO" with cpr "87654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 25 kr and message "Payment for 25 kr initiated"
+    And another transaction between the customer and the merchant is initiated with amount 40 kr and message "Payment for 40 kr initiated"
+    When I register both payments with the payment service
+    Then I request all payments as a manager
+    And I should receive a manager report containing all payment events with correct details

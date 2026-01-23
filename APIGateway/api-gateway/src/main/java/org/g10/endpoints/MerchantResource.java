@@ -39,27 +39,11 @@ public class    MerchantResource extends AbstractResource {
         });
     }
 
-    @GET
-    @Path("/{merchantId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getMerchant(@jakarta.ws.rs.PathParam("merchantId") String merchantId) {
-        System.out.println("Received request to get merchant with ID: " + merchantId);
-        if (merchantId == null || merchantId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"merchantId is required.\"}")
-                    .build();
-        }
-        return Response.status(Response.Status.NOT_IMPLEMENTED)
-                .entity("{\"error\": \"Merchant lookup is not supported via the api-gateway.\"}")
-                .build();
-
-    }
 
     @DELETE
     @Path("/{merchantId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMerchant(@jakarta.ws.rs.PathParam("merchantId") String merchantId) {
-        System.out.println("Received request to delete merchant with ID: " + merchantId);
         if (merchantId == null || merchantId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"merchantId is required.\"}")

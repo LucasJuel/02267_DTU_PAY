@@ -39,10 +39,6 @@ public class StorageHandler {
         return customerStorage.get(customerId);
     }
 
-    public Map<String, CustomerDTO> getAllCustomers() {
-        return customerStorage;
-    }
-
     public MerchantDTO getMerchant(String merchantId) {
         return merchantStorage.get(merchantId);
     }

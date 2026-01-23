@@ -1,6 +1,8 @@
 package org.g10;
 import dtu.ws.fastmoney.*;
 import io.cucumber.java.After;
+
+import org.g10.DTO.ManagerDTO;
 import org.g10.DTO.PaymentDTO;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
@@ -29,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class PaymentConsumerSteps {
     private PaymentDTO paymentDTO = new PaymentDTO();
     private PaymentDTO paymentDTO2;
+    private ManagerDTO managerDTO;
     private final BankService bank = new BankService_Service().getBankServicePort();
     private final String apiKey = "kayak2098";
     private final User customerUser = new User();
@@ -252,6 +255,43 @@ public class PaymentConsumerSteps {
 
         Map<String, Object> firstPayment = paymentList.get(0);
         Map<String, Object> secondPayment = paymentList.get(1);
+
+        assertEquals(merchantAccount, firstPayment.get("merchantId"));
+        assertEquals(customerAccount, firstPayment.get("customerId"));
+        assertEquals(paymentDTO.getAmount(), firstPayment.get("amount"));
+        assertEquals(paymentDTO.getMessage(), firstPayment.get("message"));
+
+        assertEquals(merchantAccount, secondPayment.get("merchantId"));
+        assertEquals(customerAccount, secondPayment.get("customerId"));
+        assertEquals(paymentDTO2.getAmount(), secondPayment.get("amount"));
+        assertEquals(paymentDTO2.getMessage(), secondPayment.get("message"));
+    }
+
+    @Then("I request all payments for customer {string}")
+    public void i_request_all_payments_for_customer(String string) {
+        paymentList = reportingService.getAllPayments(new org.g10.DTO.ReportDTO(customerAccount, "customer"));
+
+    }
+
+    @Then("I request all payments as a manager")
+    public void i_request_all_payments_as_a_manager() {
+        managerDTO = reportingService.getManagerReport(new org.g10.DTO.ReportDTO("", "manager"));
+    }
+
+    @Then("I should receive a manager report containing all payment events with correct details")
+    public void i_should_receive_a_manager_report_containing_all_payment_events_with_correct_details() {
+        assertNotNull(managerDTO);
+        assertEquals(2, managerDTO.getPaymentCount());
+  
+
+        int totalAmount = paymentDTO.getAmount().add(paymentDTO2.getAmount()).intValue();
+        assertEquals(new BigDecimal(totalAmount), managerDTO.getTotalAmount());
+
+        List<Map<String, Object>> payments = managerDTO.getPayments();
+        assertEquals(2, payments.size());
+
+        Map<String, Object> firstPayment = payments.get(0);
+        Map<String, Object> secondPayment = payments.get(1);
 
         assertEquals(merchantAccount, firstPayment.get("merchantId"));
         assertEquals(customerAccount, firstPayment.get("customerId"));

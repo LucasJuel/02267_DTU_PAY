@@ -18,24 +18,24 @@ public class AccountConsumerStarter {
             
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    System.out.println("Starting AccountConsumer in background thread (attempt " + attempt + "/" + maxRetries + ")...");
+     
                     consumer = new AccountConsumer();
                     consumer.startListening();
-                    System.out.println("AccountConsumer started successfully!");
+                 
                     return; // Success, exit the thread
                 } catch (Exception e) {
-                    System.err.println("Failed to start AccountConsumer (attempt " + attempt + "/" + maxRetries + "): " + e.getMessage());
+                    
                     if (attempt < maxRetries) {
                         try {
-                            System.out.println("Retrying in " + (retryDelay / 1000) + " seconds...");
+                        
                             Thread.sleep(retryDelay);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
-                            System.err.println("Retry interrupted, giving up.");
+                     
                             return;
                         }
                     } else {
-                        System.err.println("All retry attempts failed. AccountConsumer could not be started.");
+                     
                         e.printStackTrace();
                     }
                 }

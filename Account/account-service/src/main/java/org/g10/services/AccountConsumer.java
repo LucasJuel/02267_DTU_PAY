@@ -85,17 +85,16 @@ public class AccountConsumer implements AutoCloseable {
         channel.queueDeclare(merchantDeregisterQueue, true, false, false, null);
         channel.queueDeclare(reportingQueue, true, false, false, null);
 
-        System.out.println(" [*] Waiting for messages To exit press CTRL+C");
         DeliverCallback customerCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [CUSTOMER] Received '" + message + "'");
+
             try {
                 CustomerDTO customer = gson.fromJson(message, CustomerDTO.class);
                 String response = customerService.register(customer);
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println(" [CUSTOMER] Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
+                   
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {
@@ -104,7 +103,7 @@ public class AccountConsumer implements AutoCloseable {
         };
         DeliverCallback getCustomerCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [CUSTOMER] Received '" + message + "'");
+         
             try {
                 // Parse JSON to extract customerId
                 com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
@@ -113,7 +112,7 @@ public class AccountConsumer implements AutoCloseable {
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println(" [CUSTOMER] Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
+               
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {
@@ -123,14 +122,14 @@ public class AccountConsumer implements AutoCloseable {
 
         DeliverCallback merchantCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [MERCHANT] Received '" + message + "'");
+ 
             try {
                 MerchantDTO merchant = gson.fromJson(message, MerchantDTO.class);
                 String response = merchantService.register(merchant);
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println(" [MERCHANT] Sending response:" + response + " to " + replyTo + " with correlationId " + correlationId);
+          
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {
@@ -148,18 +147,17 @@ public class AccountConsumer implements AutoCloseable {
 
         DeliverCallback customerDeregisterCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [x] Received deregister request for customer: '" + message + "'");
+
             try {
                 // Parse JSON to extract customerId
                 com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
                 String customerId = jsonObject.get("customerId").getAsString();
-                System.out.println("Deregister customer with ID: " + customerId);
+            
                 String response = customerService.deregister(customerId);
-                System.out.println("Deregister customer response: " + response);
+               
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending deregister response: " + response + " to " + replyTo);
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {
@@ -169,18 +167,18 @@ public class AccountConsumer implements AutoCloseable {
 
         DeliverCallback merchantDeregisterCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [x] Received deregister request for merchant: '" + message + "'");
+          
             try {
                 // Parse JSON to extract merchantId
                 com.google.gson.JsonObject jsonObject = gson.fromJson(message, com.google.gson.JsonObject.class);
                 String merchantId = jsonObject.get("merchantId").getAsString();
-                System.out.println("Deregister merchant with ID: " + merchantId);
+    
                 String response = merchantService.deregister(merchantId);
-                System.out.println("Deregister merchant response: " + response);
+  
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending deregister response: " + response + " to " + replyTo);
+                   
                     sendResponse(channel, replyTo, correlationId, response);
                 }
             } catch (Exception e) {

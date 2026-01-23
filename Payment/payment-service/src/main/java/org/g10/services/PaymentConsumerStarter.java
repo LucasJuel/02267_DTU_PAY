@@ -18,16 +18,13 @@ public class PaymentConsumerStarter {
             
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    System.out.println("Starting PaymentConsumer in background thread (attempt " + attempt + "/" + maxRetries + ")...");
                     consumer = new PaymentConsumer();
                     consumer.startListening();
-                    System.out.println("PaymentConsumer started successfully!");
                     return; // Success, exit the thread
                 } catch (Exception e) {
                     System.err.println("Failed to start PaymentConsumer (attempt " + attempt + "/" + maxRetries + "): " + e.getMessage());
                     if (attempt < maxRetries) {
                         try {
-                            System.out.println("Retrying in " + (retryDelay / 1000) + " seconds...");
                             Thread.sleep(retryDelay);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();

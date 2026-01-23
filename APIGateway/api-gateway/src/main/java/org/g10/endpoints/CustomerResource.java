@@ -38,27 +38,11 @@ public class CustomerResource extends AbstractResource{
         });
     }
 
-    @GET
-    @Path("/{customerId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getCustomer(@jakarta.ws.rs.PathParam("customerId") String customerId) {
-        System.out.println("Received request to get customer with ID: " + customerId);
-        if (customerId == null || customerId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"customerId is required.\"}")
-                    .build();
-        }
-        return Response.status(Response.Status.NOT_IMPLEMENTED)
-                .entity("{\"error\": \"Customer lookup is not supported via the api-gateway.\"}")
-                .build();
-
-    }
-
     @DELETE
     @Path("/{customerId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCustomer(@jakarta.ws.rs.PathParam("customerId") String customerId) {
-        System.out.println("Received request to delete customer with ID: " + customerId);
+   
         if (customerId == null || customerId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"customerId is required.\"}")

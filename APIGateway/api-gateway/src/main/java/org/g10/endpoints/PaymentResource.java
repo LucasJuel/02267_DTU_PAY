@@ -25,7 +25,6 @@ public class PaymentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response pay(PaymentDTO request) {
-        System.out.println("Processing payment for merchant: " + request.getMerchantAccountId());
 
         try {
             try (PaymentProducer producer = new PaymentProducer()) {
@@ -41,12 +40,5 @@ public class PaymentResource {
         }
     }
 
-    @GET
-    @Path("/list/{merchantId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response listPayments(@jakarta.ws.rs.PathParam("merchantId") String merchantId){
-        return Response.status(Response.Status.NOT_IMPLEMENTED)
-                .entity("{\"error\": \"Payment listing is not supported via the api-gateway.\"}")
-                .build();
-    }
+
 }
