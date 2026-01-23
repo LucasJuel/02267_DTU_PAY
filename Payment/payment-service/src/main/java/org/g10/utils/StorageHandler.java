@@ -31,35 +31,12 @@ public class StorageHandler {
         return instance;
     }
 
-    public void storeCustomer(String customerId, Account customerData){
-        customerStorage.put(customerId, customerData);
-    }
-
-    public Account getCustomer(String customerId){
-        return customerStorage.get(customerId);
-    }
-
-    public void storeMerchant(String merchantId, Account merchantData){
-        merchantStorage.put(merchantId, merchantData);
-    }
-
-    public Account getMerchant(String merchantId){
-        return merchantStorage.get(merchantId);
-    }
-
     public synchronized void addPayment(Map<String, Object> payment) {
-        System.out.println("Adding payment: " + payment);
         payments.add(payment);
     }
 
     public synchronized List<Map<String, Object>> readPayments() {
         return new ArrayList<>(payments);
-    }
-
-    public synchronized List<Map<String, Object>> getPaymentsByMerchant(String merchantId) {
-        return payments.stream()
-                .filter(p -> merchantId.equals(p.get("merchantId")))
-                .collect(Collectors.toList());
     }
     
     public synchronized void clear() {
