@@ -82,7 +82,6 @@ public class ProducerTest {
     @BeforeAll
     public static void globalSetUp() {
         System.out.println("GLOBAL SETUP STARTED");
-        System.out.println("SETUP STARTED ON PORT: " + getEnvInt("RABBITMQ_PORT", DEFAULT_PORT));
         System.out.println("ON HOST : " + getEnv("RABBITMQ_HOST", DEFAULT_HOST));
     }
 

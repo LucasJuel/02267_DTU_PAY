@@ -20,16 +20,13 @@ public class TokenConsumerStarter {
 
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    System.out.println("Starting TokenConsumer in background thread (attempt " + attempt + "/" + maxRetries + ")...");
                     consumer = new TokenConsumer();
                     consumer.startListening();
-                    System.out.println("TokenConsumer started successfully!");
                     return; // Success, exit the thread
                 } catch (Exception e) {
                     System.err.println("Failed to start TokenConsumer (attempt " + attempt + "/" + maxRetries + "): " + e.getMessage());
                     if (attempt < maxRetries) {
                         try {
-                            System.out.println("Retrying in " + (retryDelay / 1000) + " seconds...");
                             Thread.sleep(retryDelay);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();

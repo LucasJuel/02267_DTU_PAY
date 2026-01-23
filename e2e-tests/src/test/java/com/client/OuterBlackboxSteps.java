@@ -104,7 +104,6 @@ public class OuterBlackboxSteps {
                 token, merchantAccountId, (float) amount
         );
         HttpResponse<String> response = apiCall.post("/payment", body);
-        System.out.println("Payment request response LOOK HERE: " + response.body());
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
 
@@ -142,7 +141,6 @@ public class OuterBlackboxSteps {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Payment request response LOOK HERE: " + response.body());
 
     }
     @Then("the payment is rejected with an error message indicating invalid token")

@@ -5,7 +5,6 @@ package org.g10.services;
 public class PaymentServiceApplication {
     private static PaymentConsumer consumer;
     public static void main(String[] args) {
-        System.out.println("Starting Payment Service Application...");
         try{
             // Thread.sleep(5000);
             consumer = new PaymentConsumer();

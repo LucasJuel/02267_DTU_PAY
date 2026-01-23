@@ -75,7 +75,6 @@ public class TokenConsumer implements AutoCloseable {
         channel = connection.createChannel();
         channel.queueDeclare(tokenQueue, true, false, false, null);
 
-        System.out.println(" [*] Waiting for token request on queue '" + tokenQueue + "'. To exit press CTRL+C");
 
         DeliverCallback callback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);

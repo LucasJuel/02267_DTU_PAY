@@ -69,11 +69,9 @@ public class PaymentConsumer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
         channel.queueDeclare(DEFAULT_REPORTING_QUEUE, true, false, false, null);
 
-        System.out.println(" [*] Waiting for payment messages on queue '" + queueName + "'. To exit press CTRL+C");
 
         DeliverCallback callback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [PAYMENT] Received '" + message + "'");
             try {
                 PaymentDTO paymentRequest = gson.fromJson(message, PaymentDTO.class);
                 String serviceResponse = paymentService.register(paymentRequest);
@@ -81,7 +79,6 @@ public class PaymentConsumer implements AutoCloseable {
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending response: " + serviceResponse + " to " + replyTo + " with correlationId " + correlationId);
                     sendResponse(channel, replyTo, correlationId, serviceResponse);
                 }
             } catch (Exception e) {
@@ -91,11 +88,9 @@ public class PaymentConsumer implements AutoCloseable {
 
         DeliverCallback reportCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-            System.out.println(" [REPORT REQUEST] Received '" + message + "'");
             try {
                 
                 ReportDTO reportRequest = gson.fromJson(message, ReportDTO.class);
-                System.out.println("Generating report for ID: " + reportRequest.getAccountId());
                 String responseJson;
                 if (reportRequest != null && "manager".equals(reportRequest.getAccountType())) {
                     ManagerDTO serviceResponse = reportingService.getManagerReport(reportRequest);
@@ -108,7 +103,6 @@ public class PaymentConsumer implements AutoCloseable {
                 String replyTo = delivery.getProperties().getReplyTo();
                 if (replyTo != null && !replyTo.isBlank()) {
                     String correlationId = delivery.getProperties().getCorrelationId();
-                    System.out.println("Sending report response: " + responseJson + " to " + replyTo + " with correlationId " + correlationId);
                     sendResponse(channel, replyTo, correlationId, responseJson);
                 }
             } catch (Exception e) {
