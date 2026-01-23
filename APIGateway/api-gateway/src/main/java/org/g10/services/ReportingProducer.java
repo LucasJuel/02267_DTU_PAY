@@ -2,10 +2,7 @@ package org.g10.services;
 
 import org.g10.DTO.ReportDTO;
 import org.g10.utils.PublishWait;
-
 import com.rabbitmq.client.*;
-import com.google.gson.Gson;
-
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
@@ -21,7 +18,6 @@ public class ReportingProducer implements AutoCloseable {
     private final Connection connection;
     private final Channel channel;
     private final String queueName;
-    private final Gson gson = new Gson();
 
     public ReportingProducer() throws IOException, TimeoutException {
         this(
