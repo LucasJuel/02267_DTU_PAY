@@ -1,13 +1,9 @@
 package org.g10.services;
 
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import jakarta.json.Json;
-import jakarta.json.JsonObjectBuilder;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.PaymentDTO;
 import org.g10.utils.PublishWait;

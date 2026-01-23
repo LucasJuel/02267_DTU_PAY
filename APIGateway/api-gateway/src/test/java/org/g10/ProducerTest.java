@@ -18,11 +18,13 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-
+import dtu.ws.fastmoney.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 
 import org.g10.DTO.*;
 import org.g10.services.*;
@@ -50,20 +52,28 @@ public class ProducerTest {
 
     private Connection connection;
     private Channel channel;
+    private final BankService bank = new BankService_Service().getBankServicePort();
     private CustomerProducer customerProducer;
     private MerchantProducer merchantProducer;
     private TokenProducer tokenProducer;
     private ReportingProducer reportingProducer;
-    // private PaymentProducer paymentProducer;
+    private PaymentProducer paymentProducer;
     private CustomerDTO customer;
     private MerchantDTO merchant;
     private ReportDTO report;
     private TokenDTO token;
     // private PaymentDTO payment;
+    private PaymentDTO payment;
+    private final User customerUser = new User();
+    private final User merchantUser = new User();
     private String returnedId;
     TokenDTO lastTokenResponse;
     private String usedToken;
     private String tokenCustomerID;
+    private final String apiKey = "kayak2098";
+    private String customerAccountId;
+    private String merchantAccountId;
+    private final List<String> accounts = new ArrayList<>();
 
     @BeforeAll
     public static void globalSetUp() {
@@ -86,7 +96,6 @@ public class ProducerTest {
         channel.queueDeclare(PAYMENT_QUEUE, true, false, false, null);
         channel.queueDeclare(REPORTING_QUEUE, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-        channel.queueDeclare(TOKEN_QUEUE, true, false, false, null);
 
         customerProducer = new CustomerProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
@@ -115,13 +124,13 @@ public class ProducerTest {
         );
 
 
-        // paymentProducer = new PaymentProducer(
-        //         getEnv("RABBITMQ_HOST", DEFAULT_HOST),
-        //         getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
-        //         getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
-        //         getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
-        //         PAYMENT_QUEUE
-        // );
+        paymentProducer = new PaymentProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                PAYMENT_QUEUE
+         );
     }
 
 
@@ -135,6 +144,7 @@ public class ProducerTest {
     public void a_customer_with_first_name_last_name_and_cpr(String string, String string2, String string3) {
         customer = new CustomerDTO(string, string2, string3, "");
     }
+
 
     @Given("the customer have a bank account with the bank account id {string}")
     public void the_customer_have_a_bank_account_with_a_balance_of_dkk(String string) {
@@ -403,9 +413,107 @@ public class ProducerTest {
         assertEquals("ERROR", lastTokenResponse.getType());
     }
 
+    @Given("the customer firstname {string} lastname {string} with cpr {string} is registered with the bank with an initial balance of {int} kr")
+    public void the_customer_firstname_lastname_with_cpr_is_registered_with_the_bank_with_an_initial_balance_of_kr(String string, String string2, String string3, Integer int1) {
+        customerUser.setFirstName(string);
+        customerUser.setLastName(string2);
+        customerUser.setCprNumber(string3);
+        BigDecimal amount = new BigDecimal(int1);
+
+        customerAccountId = "";
+        try {
+            customerAccountId = bank.createAccountWithBalance(apiKey, customerUser, amount);
+        } catch (BankServiceException_Exception e) {
+            throw new RuntimeException(e);
+        }
+        accounts.add(customerAccountId);
+
+
+    }
+    @Given("the merchant firstname {string} lastname {string} with cpr {string} is registered with the bank with an initial balance of {int} kr")
+    public void the_merchant_firstname_lastname_with_cpr_is_registered_with_the_bank_with_an_initial_balance_of_kr(String string, String string2, String string3, Integer int1) {
+        merchantUser.setFirstName(string);
+        merchantUser.setLastName(string2);
+        merchantUser.setCprNumber(string3);
+        BigDecimal amount = new BigDecimal(int1);
+
+        merchantAccountId = "";
+        try {
+            merchantAccountId = bank.createAccountWithBalance(apiKey, merchantUser, amount);
+        } catch (BankServiceException_Exception e) {
+            throw new RuntimeException(e);
+        }
+        accounts.add(merchantAccountId);
+
+
+
+    }
+    @Given("a transaction between the customer and the merchant is initiated with amount {float} kr and message {string}")
+    public void a_transaction_between_the_customer_and_the_merchant_is_initiated_with_amount_kr_and_message(Float float1, String string) {
+        payment = new PaymentDTO();
+        payment.setAmount(float1);
+        payment.setCustomerAccountId(customerAccountId);
+        payment.setMerchantAccountId(merchantAccountId);
+        payment.setMessage(string);
+
+    }
+    @When("I register the payment with the payment service")
+    public void i_register_the_payment_with_the_payment_service() {
+        try {
+            returnedId = paymentProducer.publishPaymentRequested(payment);
+        } catch (Exception e) {
+            System.out.println("Exception occurred while registering payment: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    @Then("the payment service should respond with a success message")
+    public void the_payment_service_should_respond_with_a_success_message() {
+        assertEquals("Success!", returnedId);
+    }
+    @Then("The customer has balance {double} on their bank account and merchant has balance {double}")
+    public void the_customer_has_balance_on_their_bank_account_and_merchant_has_balance(Double double1, Double double2) {
+        try {
+            BigDecimal customerBalance = bank.getAccount(customerAccountId).getBalance();
+            BigDecimal merchantBalance = bank.getAccount(merchantAccountId).getBalance();
+
+            assertEquals(0, customerBalance.compareTo(BigDecimal.valueOf(double1)), "Customer balance does not match expected value.");
+            assertEquals(0, merchantBalance.compareTo(BigDecimal.valueOf(double2)), "Merchant balance does not match expected value.");
+        } catch (BankServiceException_Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Then("the payment service should respond with an insufficient funds message")
+    public void the_payment_service_should_respond_with_an_insufficient_funds_message() {
+        assertEquals("{\"error\": \"Failed to process payment: Debtor balance will be negative\"}", returnedId);
+    }
+
+    @Given("a transaction between the invalid customer account {string} and the merchant is initiated with amount {float} kr and message {string}")
+    public void a_transaction_between_the_invalid_customer_account_and_the_merchant_is_initiated_with_amount_kr_and_message(String string, Float float1, String string2) {
+        payment = new PaymentDTO();
+        payment.setAmount(float1);
+        payment.setCustomerAccountId(string);
+        payment.setMerchantAccountId(merchantAccountId);
+        payment.setMessage(string2);
+
+    }
+
+    @Then("the payment service should respond with an invalid customer account message")
+    public void the_payment_service_should_respond_with_an_invalid_customer_account_message() {
+        assertEquals("{\"error\": \"Failed to process payment: Debtor account does not exist\"}", returnedId);
+    }
+
+
+
+
 
     @After
     public void cleanup() throws Exception {
+        for (String account : accounts) {
+            bank.retireAccount(apiKey, account);
+        }
+
         if (channel != null && channel.isOpen()) {
             channel.close();
         }

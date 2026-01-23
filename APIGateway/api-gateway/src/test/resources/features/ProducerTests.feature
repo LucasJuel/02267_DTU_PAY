@@ -47,6 +47,30 @@ Feature: RabbitMQ producers
     When I make a request for a report of all payments for the manager
     Then the manager report is returned successfully
 
+  Scenario: Payment is processed between customer and merchant
+    Given a RabbitMQ connection
+    And the customer firstname "Britta" lastname "Poulsen" with cpr "22345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "carsten" lastname "andersen" with cpr "12654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 20.5 kr and message "Payment for 20.5 kr initiated"
+    When I register the payment with the payment service
+    Then the payment service should respond with a success message
+    And  The customer has balance 479.5 on their bank account and merchant has balance 520.5
+
+  Scenario: Payment fails due to insufficient funds
+    Given a RabbitMQ connection
+    And the customer firstname "Clara" lastname "Larsson" with cpr "12356789" is registered with the bank with an initial balance of 10 kr
+    And the merchant firstname "emil" lastname "petersen" with cpr "12365432" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 50 kr and message "Payment for 50 kr initiated"
+    When I register the payment with the payment service
+    Then the payment service should respond with an insufficient funds message
+
+  Scenario: Payment fails due to invalid customer account
+    Given a RabbitMQ connection
+    And the merchant firstname "James" lastname "hansen" with cpr "32665432" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the invalid customer account "invalid-cust-001" and the merchant is initiated with amount 30 kr and message "Payment for 30 kr initiated"
+    When I register the payment with the payment service
+    Then the payment service should respond with an invalid customer account message
+
   Scenario: merchant uses a token successfully, and then again unsuccessfully
     Given a RabbitMQ connection
     And a customer with customerID "customer123"
