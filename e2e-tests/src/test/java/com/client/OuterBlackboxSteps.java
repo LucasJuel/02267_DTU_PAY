@@ -49,7 +49,7 @@ public class OuterBlackboxSteps {
     public void aCustomerIsCreatedInTheBank(int balance) throws BankServiceException_Exception {
         customer.setFirstName("Blackbox");
         customer.setLastName("Customer");
-        customer.setCprNumber("111111-1111");
+        customer.setCprNumber("115928-1111");
         customerAccountId = bank.createAccountWithBalance(apiKey, customer, new BigDecimal(balance));
         accounts.add(customerAccountId);
     }
@@ -58,7 +58,7 @@ public class OuterBlackboxSteps {
     public void aMerchantIsCreatedInTheBank(int balance) throws BankServiceException_Exception {
         merchant.setFirstName("Blackbox");
         merchant.setLastName("Merchant");
-        merchant.setCprNumber("222222-2222");
+        merchant.setCprNumber("222204-2222");
         merchantAccountId = bank.createAccountWithBalance(apiKey, merchant, new BigDecimal(balance));
         accounts.add(merchantAccountId);
     }
