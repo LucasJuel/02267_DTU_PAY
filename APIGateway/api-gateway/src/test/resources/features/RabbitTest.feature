@@ -1,4 +1,7 @@
 Feature: RabbitMQ basic publish
+  /**
+  @author ssschoubye
+  **/
 
   Scenario: Publish and consume a message
     Given a RabbitMQ connection

@@ -1,5 +1,7 @@
 package org.g10.services;
-
+/**
+ @author BertramKjær
+ **/
 public class AccountServiceApplication {
     private static AccountConsumer consumer;
     public static void main(String[] args) {

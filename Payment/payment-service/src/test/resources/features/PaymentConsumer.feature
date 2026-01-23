@@ -2,6 +2,9 @@ Feature: Payment consumer persists payment events
   In order to keep track of payments sent through the queue
   As the payment service
   I want to store each consumed payment request in the storage handler
+  /**
+  @author BertramKjær
+  **/
 
   Scenario: Store a payment event from JSON payload
     Given the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr

@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ @author LucasJuel
+ **/
 public class TokenSteps {
 
     String usedToken;

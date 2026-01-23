@@ -1,4 +1,7 @@
 package org.g10.DTO;
+/**
+ @author gh05tdog
+ **/
 
 public class CustomerDTO {
     private String firstName;

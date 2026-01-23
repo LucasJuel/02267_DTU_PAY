@@ -10,6 +10,9 @@ import jakarta.json.JsonObject;
 
 import java.io.StringReader;
 
+/**
+ @author BertramKjær
+ **/
 public class SimpleDtuPay {
     private final ApiCall apiCall;
 

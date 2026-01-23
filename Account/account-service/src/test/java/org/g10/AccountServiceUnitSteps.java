@@ -10,7 +10,9 @@ import org.g10.services.MerchantService;
 import org.g10.utils.StorageHandler;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ @author BertramKjær
+ **/
 public class AccountServiceUnitSteps {
 
     private CustomerService customerService;

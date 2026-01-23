@@ -3,7 +3,9 @@ package org.g10.DTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-
+/**
+ @author Martin-Surlykke
+ **/
 public class ManagerDTO {
     private List<Map<String, Object>> payments;
     private int paymentCount;

@@ -4,7 +4,9 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-
+/**
+ @author gh05tdog
+ **/
 @ApplicationScoped
 public class PaymentConsumerStarter {
     private PaymentConsumer consumer;

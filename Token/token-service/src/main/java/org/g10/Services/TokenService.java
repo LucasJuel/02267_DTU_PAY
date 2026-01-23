@@ -1,7 +1,9 @@
 package org.g10.Services;
 
 import org.g10.Utils.TokenStorage;
-
+/**
+ @author Martin-Surlykke
+ **/
 public class TokenService {
 
     private static final TokenStorage storage = new TokenStorage();

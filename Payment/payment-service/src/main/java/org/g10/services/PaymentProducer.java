@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.PaymentDTO;
+/**
+ @author Martin-Surlykke
+ **/
 
 public class PaymentProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "rabbitmq";

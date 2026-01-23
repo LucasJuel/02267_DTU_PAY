@@ -1,5 +1,7 @@
 package org.g10.DTO;
-
+/**
+ @author TheZoap
+ **/
 public class MerchantDTO {
     private String firstName;
     private String lastName;

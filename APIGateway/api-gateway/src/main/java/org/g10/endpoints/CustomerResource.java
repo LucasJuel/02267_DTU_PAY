@@ -11,7 +11,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
-
+/**
+ @author Martin-Surlykke
+ **/
 
 @Path("/customer")
 public class CustomerResource extends AbstractResource{

@@ -18,7 +18,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+/**
+ @author TheZoap
+ **/
 public class OuterBlackboxSteps {
     private static final int MAX_RETRIES = 12;
     private static final long RETRY_DELAY_MS = 1000;

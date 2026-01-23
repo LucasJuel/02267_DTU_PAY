@@ -1,6 +1,9 @@
 package org.g10.DTO;
 
 import java.math.BigDecimal;
+/**
+ @author ssschoubye
+ **/
 
 public class PaymentDTO {
     private String customerAccountId;
