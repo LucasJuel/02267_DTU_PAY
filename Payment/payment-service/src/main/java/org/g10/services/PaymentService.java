@@ -50,8 +50,6 @@ public class PaymentService {
                 message = "Payment from " + customerSimpleId + " to " + merchantSimpleId;
             }
 
-            System.out.println("Payment details - Merchant ID: " + merchantSimpleId + ", Customer ID: " + customerSimpleId + ", Amount: " + amount);
-
             
             bank.transferMoneyFromTo(customerSimpleId, merchantSimpleId, amount , message);
 
@@ -61,9 +59,9 @@ public class PaymentService {
             payment.put("customerId", customerSimpleId);
             payment.put("amount", amount);
             payment.put("message", message);
-            // Should also include token.
+
             storageHandler.addPayment(payment);
-            System.out.println("Payment recorded successfully: " + payment);
+
         
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Payment registered successfully");
