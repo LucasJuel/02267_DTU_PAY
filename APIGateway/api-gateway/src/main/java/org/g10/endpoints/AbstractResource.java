@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.function.Supplier;
+/**
+ @author LucasJuel
+ **/
 
 public abstract class AbstractResource {
     protected final Logger logger = LoggerFactory.getLogger(getClass());

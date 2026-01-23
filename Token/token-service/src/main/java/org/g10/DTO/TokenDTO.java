@@ -1,5 +1,8 @@
 package org.g10.DTO;
 
+/**
+ @author ssschoubye
+ **/
 
 public class TokenDTO {
     private String type;

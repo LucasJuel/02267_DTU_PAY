@@ -1,0 +1,219 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 4 0 R 6 0 R ] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2626 >>
+stream
+BT
+/F1 12 Tf
+54 788 Td
+(DTU Pay - Installation Guide \(Linux, CLI\)) Tj
+0 -14 Td
+(Date: January 23, 2026) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Scope) Tj
+0 -14 Td
+(This guide explains how to install, build, run, and test the DTU Pay microservices from the) Tj
+0 -14 Td
+(command line on any Linux machine, without Jenkins and without access to any VM.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Repository access) Tj
+0 -14 Td
+(- https://github.com/LucasJuel/02267_DTU_PAY.git) Tj
+0 -14 Td
+(- Ensure read access for the evaluator accounts if private. GitHub: hubertbau. GitLab:) Tj
+0 -14 Td
+(  huba \(gitlab.gbar.dtu.dk\) and huba63 \(gitlab.com\). Public read access is also fine.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Prerequisites \(host machine\)) Tj
+0 -14 Td
+(1\) Git \(latest stable; 2.52.0 as of Jan 2026\)) Tj
+0 -14 Td
+(   Docs: https://git-scm.com/install/linux) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(2\) Docker Engine + Docker Compose v2 plugin) Tj
+0 -14 Td
+(   Docker Engine install docs: https://docs.docker.com/engine/install/) Tj
+0 -14 Td
+(   Docker Compose install overview \(includes plugin\): https://docs.docker.com/compose/install/) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(3\) Java Development Kit \(JDK\) 21 \(LTS\)) Tj
+0 -14 Td
+(   Recommended: Eclipse Temurin 21 \(latest release: jdk-21.0.9+10\)) Tj
+0 -14 Td
+(   Downloads: https://github.com/adoptium/temurin21-binaries/releases/) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(4\) Apache Maven 3.9.12) Tj
+0 -14 Td
+(   Downloads: https://maven.apache.org/download.cgi) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(5\) curl \(used by the test script for health checks\)) Tj
+0 -14 Td
+(   Install with your distro package manager \(e.g., sudo apt-get install curl\)) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Project versions \(from source\)) Tj
+0 -14 Td
+(- Java release: 21 \(maven.compiler.release=21\)) Tj
+0 -14 Td
+(- Quarkus: 3.30.6) Tj
+0 -14 Td
+(- JUnit: 5.10.1) Tj
+0 -14 Td
+(- Cucumber: 7.15.0) Tj
+0 -14 Td
+(- Client WSDL tooling: JAX-WS RI 4.0.3) Tj
+0 -14 Td
+(- Docker build images: maven:3.9-eclipse-temurin-21) Tj
+0 -14 Td
+(- Docker runtime base image: eclipse-temurin:21-jre) Tj
+0 -14 Td
+(- RabbitMQ image: rabbitmq:3-management) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Quick start \(build + deploy + test\)) Tj
+0 -14 Td
+(1\) Clone and enter the repo:) Tj
+0 -14 Td
+(   git clone https://github.com/LucasJuel/02267_DTU_PAY.git) Tj
+0 -14 Td
+(   cd 02267_DTU_PAY) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(2\) Run the all-in-one script \(top-level\):) Tj
+0 -14 Td
+(   chmod +x ./run-all-tests.sh) Tj
+0 -14 Td
+(   ./run-all-tests.sh) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(This script:) Tj
+0 -14 Td
+(- builds Docker images) Tj
+0 -14 Td
+(- starts all services via docker compose) Tj
+0 -14 Td
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1517 >>
+stream
+BT
+/F1 12 Tf
+54 788 Td
+(- waits for the API Gateway to be ready) Tj
+0 -14 Td
+(- runs unit + service tests) Tj
+0 -14 Td
+(- runs end-to-end tests) Tj
+0 -14 Td
+(- shuts down containers) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Manual commands \(if you prefer\)) Tj
+0 -14 Td
+(Start services:) Tj
+0 -14 Td
+(  docker compose up -d --build) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Run unit + service tests:) Tj
+0 -14 Td
+(  mvn test) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Run end-to-end tests:) Tj
+0 -14 Td
+(  SERVER_URL=http://localhost:8080 mvn -pl e2e-tests -am test) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Stop services:) Tj
+0 -14 Td
+(  docker compose down) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Ports) Tj
+0 -14 Td
+(- API Gateway: http://localhost:8080) Tj
+0 -14 Td
+(- Account service: http://localhost:8081) Tj
+0 -14 Td
+(- Payment service: http://localhost:8082) Tj
+0 -14 Td
+(- Token service: http://localhost:8084) Tj
+0 -14 Td
+(- Client: http://localhost:8181) Tj
+0 -14 Td
+(- RabbitMQ management UI: http://localhost:15672 \(guest/guest\)) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Notes / troubleshooting) Tj
+0 -14 Td
+(- First build can take several minutes while Docker downloads base images.) Tj
+0 -14 Td
+(- The client module uses the DTU FastMoney WSDL at) Tj
+0 -14 Td
+(  http://fm-00.compute.dtu.dk/services/BankService?wsdl for wsimport. Network access to) Tj
+0 -14 Td
+(  that URL is required when building the client module.) Tj
+0 -14 Td
+(- Shell scripts use Unix \(LF\) line endings. If you edit on Windows, keep LF or run:) Tj
+0 -14 Td
+(  dos2unix run-all-tests.sh) Tj
+0 -14 Td
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000123 00000 n 
+0000000193 00000 n 
+0000000319 00000 n 
+0000002997 00000 n 
+0000003123 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+4692
+%%EOF

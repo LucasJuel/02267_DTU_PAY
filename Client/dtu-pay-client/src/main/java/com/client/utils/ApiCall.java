@@ -6,6 +6,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+/**
+ @author TheZoap
+ **/
+
 public class ApiCall {
     private final HttpClient httpClient;
     private final String baseUrl;

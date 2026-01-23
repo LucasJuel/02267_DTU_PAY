@@ -6,7 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ @author gh05tdog
+ **/
 class StorageHandlerTest {
 
     private StorageHandler storage;
@@ -20,8 +22,11 @@ class StorageHandlerTest {
     @Test
     void storeAndGetCustomer() {
         CustomerDTO customer = new CustomerDTO("Clara", "Clausen", "567890-1234", "account-789");
-        storage.storeCustomer("cust-1", customer);
-
+        try{
+            storage.storeCustomer("cust-1", customer);
+        } catch (Exception e){
+            fail("Storing customer threw an exception: " + e.getMessage());
+        }
         CustomerDTO stored = storage.getCustomer("cust-1");
 
         assertNotNull(stored);
@@ -34,7 +39,11 @@ class StorageHandlerTest {
     @Test
     void storeAndGetMerchant() {
         MerchantDTO merchant = new MerchantDTO("Dan", "Dahl", "222333-4444", "account-999");
-        storage.storeMerchant("merch-1", merchant);
+        try{
+            storage.storeMerchant("merch-1", merchant);
+        } catch (Exception e){
+            fail("Storing merchant threw an exception: " + e.getMessage());
+        }
 
         MerchantDTO stored = storage.getMerchant("merch-1");
 

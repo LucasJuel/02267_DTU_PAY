@@ -11,11 +11,25 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ @author BertramKjær
+ **/
 
 public class PaymentService {
-    private final BankService bank = new BankService_Service().getBankServicePort();
-    private final StorageHandler storageHandler = StorageHandler.getInstance();
+
+
+    private BankService bank = new BankService_Service().getBankServicePort();
+    private StorageHandler storageHandler = StorageHandler.getInstance();
+
+    public PaymentService() {
+        this(new BankService_Service().getBankServicePort(), StorageHandler.getInstance());
+    }
+
+    public PaymentService(BankService bank, StorageHandler storageHandler) {
+        this.bank = bank;
+        this.storageHandler = storageHandler;
+    }
+
     public String register(PaymentDTO request) {
         try{
             // Payment processing implementation
@@ -55,17 +69,10 @@ public class PaymentService {
             responseBody.put("merchantId", merchantSimpleId);
             responseBody.put("customerId", customerSimpleId);
             responseBody.put("amount", amount);
-        
-        
   
             return "Success!";
-        } catch(BankServiceException_Exception e){
-            // Bank rejected the transfer (insufficient funds, unknown account, etc.)
-            String reason = e.getFaultInfo() != null ? e.getFaultInfo().getMessage() : e.getMessage();
-            return "{\"error\": \"Failed to process payment:\"}";
         } catch(Exception e){
-            e.printStackTrace();
             return "{\"error\": \"Failed to process payment:\"}";
-        }
+        } 
     }
 }

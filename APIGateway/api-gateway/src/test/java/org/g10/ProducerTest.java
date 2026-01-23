@@ -33,7 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+/**
+ @author Martin-Surlykke
+ **/
 public class ProducerTest {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

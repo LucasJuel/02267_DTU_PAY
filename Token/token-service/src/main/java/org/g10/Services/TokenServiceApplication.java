@@ -1,5 +1,8 @@
 package org.g10.Services;
 
+/**
+ @author BertramKjær
+ **/
 public class TokenServiceApplication {
     private static TokenConsumer consumer;
     public static void main(String[] args) {

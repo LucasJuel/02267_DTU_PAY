@@ -1,4 +1,7 @@
 package org.g10.DTO;
+/**
+ @author TheZoap
+ **/
 
 public class ReportDTO {
     private String accountId;

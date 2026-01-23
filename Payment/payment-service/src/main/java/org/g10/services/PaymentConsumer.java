@@ -14,6 +14,9 @@ import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
+/**
+ @author LucasJuel
+ **/
 
 public class PaymentConsumer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";

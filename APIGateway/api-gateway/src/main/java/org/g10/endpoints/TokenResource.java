@@ -9,6 +9,9 @@ import org.g10.services.TokenProducer;
 
 import java.io.IOException;
 
+/**
+ @author TheZoap
+ **/
 @Path("/token")
 public class TokenResource extends AbstractResource {
     @POST

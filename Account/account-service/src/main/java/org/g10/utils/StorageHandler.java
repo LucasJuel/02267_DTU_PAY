@@ -6,7 +6,9 @@ import org.g10.DTO.MerchantDTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+/**
+ @author LucasJuel
+ **/
 public class StorageHandler {
 
     private static org.g10.utils.StorageHandler instance;
@@ -18,7 +20,8 @@ public class StorageHandler {
     private final List<Map<String, Object>> payments = new ArrayList<>();
 
     // Private constructor
-    private StorageHandler() {
+    public StorageHandler() {
+
     }
 
     // Get singleton instance
@@ -29,11 +32,11 @@ public class StorageHandler {
         return instance;
     }
 
-    public void storeCustomer(String customerId, CustomerDTO customerData) {
+    public void storeCustomer(String customerId, CustomerDTO customerData) throws Exception {
         customerStorage.put(customerId, customerData);
     }
 
-    public void storeMerchant(String merchantId, MerchantDTO merchantData) {
+    public void storeMerchant(String merchantId, MerchantDTO merchantData) throws Exception {
         merchantStorage.put(merchantId, merchantData);
     }
 

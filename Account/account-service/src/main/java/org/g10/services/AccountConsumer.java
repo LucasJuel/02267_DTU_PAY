@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
-
+/**
+ @author gh05tdog
+ **/
 public class AccountConsumer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

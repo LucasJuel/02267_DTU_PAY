@@ -5,6 +5,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+/**
+ @author LucasJuel
+ **/
 @Path("/hello")
 public class GreetingResource {
 

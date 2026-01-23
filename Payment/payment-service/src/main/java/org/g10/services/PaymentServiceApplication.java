@@ -1,5 +1,7 @@
 package org.g10.services;
-
+/**
+ @author ssschoubye
+ **/
 public class PaymentServiceApplication {
     private static PaymentConsumer consumer;
     public static void main(String[] args) {

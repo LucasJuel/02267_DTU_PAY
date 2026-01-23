@@ -8,15 +8,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-import com.google.gson.Gson;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import org.g10.services.PaymentConsumer;
 import org.g10.services.PaymentService;
-import org.g10.services.PaymentServiceApplication;
-import org.g10.services.ReportingService;
 import org.g10.utils.StorageHandler;
 
 import java.io.IOException;
@@ -24,20 +16,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+/**
+ @author gh05tdog
+ **/
 public class PaymentConsumerSteps {
     private PaymentDTO paymentDTO = new PaymentDTO();
-    private ConnectionFactory factory;
-    private Connection connection;
-    private Channel channel;
-    private PaymentServiceApplication app;
-    private Thread thread;
     private final BankService bank = new BankService_Service().getBankServicePort();
     private final String apiKey = "kayak2098";
     private final User customerUser = new User();
@@ -46,8 +34,8 @@ public class PaymentConsumerSteps {
     private String merchantAccount;
     private final List<String> accounts = new ArrayList<>();
     private final StorageHandler storageHandler = StorageHandler.getInstance();
-    private final ReportingService reportingService = new ReportingService();
-    private final PaymentService paymentService = new PaymentService();
+    private PaymentService paymentService = new PaymentService();
+    private BankService mockBankService;
     private String paymentResponse;
 
     @Before
@@ -160,6 +148,81 @@ public class PaymentConsumerSteps {
         // assertEquals(expectedData.get("customerId"), storedPayment.get("customerId"));
         assertEquals(new BigDecimal(expectedData.get("amount")), storedPayment.get("amount"));
         assertEquals(expectedData.get("message"), storedPayment.get("message"));
+    }
+
+    @Then("the payment service should respond with a failure message indicating invalid amount")
+    public void the_payment_service_should_respond_with_a_failure_message_indicating_invalid_amount() {
+        assertEquals("{\"error\": \"Payment amount must be greater than zero.\"}", paymentResponse);
+    }
+
+    @Given("a transaction between the customer and the merchant is initiated with amount {int} kr and no message")
+    public void a_transaction_between_the_customer_and_the_merchant_is_initiated_with_amount_kr_and_no_message(Integer int1) {
+        BigDecimal val = new BigDecimal(int1);
+        paymentDTO.setAmount(val);
+        paymentDTO.setCustomerAccountId(customerAccount);
+        paymentDTO.setMerchantAccountId(merchantAccount);
+        paymentDTO.setMessage(null);
+    }
+
+    @Then("the payment message should default to standard message")
+    public void the_payment_message_should_default_to_standard_message() {
+        String expectedMessage = "Payment from " + customerAccount + " to " + merchantAccount;
+        //Find the stored payment
+        List<Map<String, Object>> payments = storageHandler.readPayments();
+        assertNotNull(payments);
+        assertEquals(1, payments.size());
+        Map<String, Object> storedPayment = payments.get(0);
+        String storedMessage = (String) storedPayment.get("message");
+        assertEquals(expectedMessage, storedMessage);
+    }
+
+    @Then("the payment service should respond with a failure message indicating error")
+    public void the_payment_service_should_respond_with_a_failure_message_indicating_error() {
+        paymentResponse = paymentService.register(paymentDTO);
+        assertEquals("{\"error\": \"Failed to process payment:\"}", paymentResponse);
+    }
+
+    @Given("the bank service is mocked to throw a bank exception on transfer")
+    public void the_bank_service_is_mocked_to_throw_a_bank_exception_on_transfer() { 
+        mockBankService = new BankService() {
+            @Override
+            public void transferMoneyFromTo(String fromAccountId, String toAccountId, BigDecimal amount, String message) throws BankServiceException_Exception {
+                throw new BankServiceException_Exception("Mocked bank exception", new BankServiceException());
+            }
+
+            @Override
+            public Account getAccount(String accountId) throws BankServiceException_Exception {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'getAccount'");
+            }
+
+            @Override
+            public Account getAccountByCprNumber(String cpr) throws BankServiceException_Exception {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'getAccountByCprNumber'");
+            }
+
+            @Override
+            public String createAccountWithBalance(String bankApiKey, User user, BigDecimal balance)
+                    throws BankServiceException_Exception {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'createAccountWithBalance'");
+            }
+
+            @Override
+            public void retireAccount(String bankApiKey, String accountId) throws BankServiceException_Exception {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'retireAccount'");
+            }
+
+            @Override
+            public List<AccountInfo> getAccounts() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'getAccounts'");
+            }
+        };
+        // Inject the mock bank service into the payment service
+        paymentService = new PaymentService(mockBankService, storageHandler);
     }
 
 
