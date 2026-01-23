@@ -1,5 +1,8 @@
 # DTU Pay – Installation Guide
 
+# Huba jenkins
+password and for huba can be found in file: "huber_password_for_jenkins.txt"
+
 ## Repository URLs
 <https://github.com/LucasJuel/02267_DTU_PAY>
 
