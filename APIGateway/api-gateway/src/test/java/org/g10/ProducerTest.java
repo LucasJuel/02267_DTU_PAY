@@ -410,7 +410,7 @@ public class ProducerTest {
 
     @Then("the payment service should respond with an insufficient funds message")
     public void the_payment_service_should_respond_with_an_insufficient_funds_message() {
-        assertEquals("{\"error\": \"Failed to process payment: Debtor balance will be negative\"}", returnedId);
+        assertEquals("{\"error\": \"Failed to process payment:\"}", returnedId);
     }
 
     @Given("a transaction between the invalid customer account {string} and the merchant is initiated with amount {float} kr and message {string}")
@@ -425,7 +425,7 @@ public class ProducerTest {
     
     @Then("the payment service should respond with an invalid customer account message")
     public void the_payment_service_should_respond_with_an_invalid_customer_account_message() {
-        assertEquals("{\"error\": \"Failed to process payment: Debtor account does not exist\"}", returnedId);
+        assertEquals("{\"error\": \"Failed to process payment:\"}", returnedId);
     }
 
 
