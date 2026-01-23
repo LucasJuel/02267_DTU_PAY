@@ -61,8 +61,9 @@ public class ProducerTest {
     private TokenDTO token;
     // private PaymentDTO payment;
     private String returnedId;
-    private String tokenCustomerID;
     TokenDTO lastTokenResponse;
+    private String usedToken;
+    private String tokenCustomerID;
 
     @BeforeAll
     public static void globalSetUp() {
@@ -131,13 +132,16 @@ public class ProducerTest {
     }
 
     @Given("a customer with first name {string}, last name {string} and cpr {string}")
-    public void a_customer_with_first_name_last_name_and_cpr(String string, String string2, String string3) {     
+    public void a_customer_with_first_name_last_name_and_cpr(String string, String string2, String string3) {
+
         customer = new CustomerDTO(string, string2, string3, "");
     }
 
     @Given("the customer have a bank account with the bank account id {string}")
     public void the_customer_have_a_bank_account_with_a_balance_of_dkk(String string) {
         customer.setBankAccountId(string);
+        tokenCustomerID = string;
+
     }
 
     @When("I make a request to register the customer in DTU Pay")
@@ -339,11 +343,6 @@ public class ProducerTest {
         }
     }
 
-    @Given("a registered customer {string} without tokens")
-    public void aRegisteredCustomerWithoutTokens(String cID) {
-        tokenCustomerID = cID;
-    }
-
     @When("the customer requests {int} tokens")
     public void theCustomerRequestsTokens(int numTokens) throws IOException, InterruptedException {
         TokenDTO request = new TokenDTO();
@@ -361,17 +360,24 @@ public class ProducerTest {
 
     @And("{int} tokens are added")
     public void tokensAreAdded(int arg0) {
-        assertEquals(arg0 + currentTokens, tokenService.getNumTokens(customerId));
+        assertEquals("SUCCESS", lastTokenResponse.getType());
+        assertEquals(arg0, lastTokenResponse.getAmount());
     }
 
     @When("the customer pays a merchant using one token")
     public void theCustomerPaysAMerchantUsingOneToken() throws Exception {
-        usedToken = tokenService.requestGetToken(customerId);
+        TokenDTO request = new TokenDTO();
+        request.setType("GET_TOKEN");
+        request.setCustomerID(tokenCustomerID);
+
+        lastTokenResponse = tokenProducer.sendTokenRequest(request);
+        usedToken = lastTokenResponse.getToken();
+
         TokenDTO validation = new TokenDTO();
         validation.setType("VALIDATE_TOKEN");
         validation.setToken(usedToken);
 
-        lastResponse = producer.sendTokenRequest(validation);
+        lastTokenResponse = tokenProducer.sendTokenRequest(validation);
     }
 
     @Then("the payment is successful")
@@ -381,28 +387,9 @@ public class ProducerTest {
 
     @And("the customer now has {int} unused tokens")
     public void theCustomerNowHasUnusedTokens(int arg0) {
-        assertEquals(arg0, tokenService.getNumTokens(customerId));
-    }
-
-    @Given("a customer has used a token for a successful payment")
-    public void aCustomerHasUsedATokenForASuccessfulPayment() throws Exception {
-        TokenDTO request = new TokenDTO();
-        request.setType("ADD_TOKENS");
-        request.setCustomerID(customerId);
-        request.setAmount(1);
-        tokenProducer.sendTokenRequest(request);
-
-        usedToken = tokenService.requestGetToken(tokenCustomerID);
-        assertNotNull(usedToken, "Token was not generated");
-
-        TokenDTO validation = new TokenDTO();
-        validation.setType("VALIDATE_TOKEN");
-        validation.setToken(usedToken);
-        lastTokenResponse = tokenProducer.sendTokenRequest(validation);
-
-        assertEquals("SUCCESS", lastTokenResponse.getType(), lastTokenResponse.getErrorMSG());
 
     }
+
 
     @When("the customer attempts to pay again with the same token")
     public void theCustomerAttemptsToPayAgainWithTheSameToken() throws IOException, InterruptedException {
@@ -416,21 +403,6 @@ public class ProducerTest {
     @Then("the request is denied")
     public void theRequestIsDenied() {
         assertEquals("ERROR", lastTokenResponse.getType());
-    }
-
-    @Given("a registered merchant")
-    public void aRegisteredMerchant() {
-        // We assume the merchant is correctly registered in this test
-    }
-
-
-    @When("the merchant attempts to process a payment with token {string}")
-    public void theMerchantAttemptsToProcessAPaymentWithToken(String token) throws IOException, InterruptedException {
-        TokenDTO request = new TokenDTO();
-        request.setType("VALIDATE_TOKEN");
-        request.setToken(token);
-        lastTokenResponse = tokenProducer.sendTokenRequest(request);
-
     }
 
 

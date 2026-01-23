@@ -62,4 +62,12 @@ public class TokenService {
     public int getNumTokens(String customerId) {
         return storage.getNumberOfTokens(customerId);
     }
+
+    public String getToken(String customerID) {
+        return storage.getToken(customerID);
+    }
+
+    public void clearStorage () {
+        storage.clear();
+    }
 }

@@ -52,6 +52,11 @@ public class TokenStorage {
         }
 
     }
+
+    public void clear() {
+        customerTokens.clear();
+        tokenCustomers.clear();
+    }
 }
 
 
