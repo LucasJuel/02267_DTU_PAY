@@ -35,6 +35,7 @@ public class OuterBlackboxSteps {
     private String merchantAccountId;
     private String token;
     private String customerDTUpayID;
+    HttpResponse<String> response;
 
     public OuterBlackboxSteps() {
         String envUrl = System.getenv("SERVER_URL");
@@ -71,7 +72,7 @@ public class OuterBlackboxSteps {
                 "{\"firstName\":\"%s\",\"lastName\":\"%s\",\"cpr\":\"%s\",\"bankAccountId\":\"%s\"}",
                 customer.getFirstName(), customer.getLastName(), customer.getCprNumber(), customerAccountId
         );
-        HttpResponse<String> response = apiCall.post("/customer", body);
+        response = apiCall.post("/customer", body);
         customerDTUpayID = response.body();
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
@@ -82,17 +83,15 @@ public class OuterBlackboxSteps {
                 "{\"firstName\":\"%s\",\"lastName\":\"%s\",\"cpr\":\"%s\",\"bankAccountId\":\"%s\"}",
                 merchant.getFirstName(), merchant.getLastName(), merchant.getCprNumber(), merchantAccountId
         );
-        HttpResponse<String> response = apiCall.post("/merchant", body);
+        response = apiCall.post("/merchant", body);
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
 
     @And("the customer provides the merchant with a token for payment") 
     public void theCustomerProvidesToken() throws Exception {
 
-        HttpResponse<String> response = apiCall.get("/token/" + customerDTUpayID);
-        System.out.println("Token request response: " + response);
+        response = apiCall.get("/token/" + customerDTUpayID);
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
-        System.out.println("Token response: " + response.body());
         token = response.body();
     }
 
@@ -103,6 +102,7 @@ public class OuterBlackboxSteps {
                 token, merchantAccountId, (float) amount
         );
         HttpResponse<String> response = apiCall.post("/payment", body);
+        System.out.println("Payment request response LOOK HERE: " + response.body());
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
 
@@ -114,6 +114,38 @@ public class OuterBlackboxSteps {
     @And("the merchant bank balance eventually becomes {int} kr")
     public void theMerchantBalanceEventuallyBecomes(int expected) throws Exception {
         awaitBalance(merchantAccountId, new BigDecimal(expected));
+    }
+
+    @When("the customer requests a new set of {int} tokens via the public API")
+    public void the_customer_requests_tokens_via_the_public_api(Integer int1) throws Exception {
+        String body = String.format(
+        "{\"customerID\":\"%s\" ,\"amount\":%d}",
+        customerDTUpayID, int1
+    );
+        response = apiCall.post("/token", body);
+    }
+    @Then("the token request is rejected with an error message indicating token limit exceeded")
+    public void the_token_request_is_rejected_with_an_error_message_indicating_token_limit_exceeded() {     
+        assertEquals("{\"type\":\"ERROR\",\"customerID\":null,\"amount\":0,\"token\":null,\"errorMSG\":\"ADD TOKENS FAILED\"}", response.body());
+    }
+
+    @When("the merchant initiates a payment of {int} kr via the public API with the invalid token {string}")
+    public void the_merchant_initiates_a_payment_of_kr_via_the_public_api_with_the_invalid_token(Integer int1, String string) {
+        String body = String.format(java.util.Locale.US,
+                "{\"customerToken\":\"%s\",\"merchantAccountId\":\"%s\",\"amount\":%.2f,\"message\":\"Blackbox payment\"}",
+                string, merchantAccountId, (float) int1
+        );
+        try {
+            response = apiCall.post("/payment", body);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Payment request response LOOK HERE: " + response.body());
+
+    }
+    @Then("the payment is rejected with an error message indicating invalid token")
+    public void the_payment_is_rejected_with_an_error_message_indicating_invalid_token() {
+
     }
 
     private void awaitBalance(String accountId, BigDecimal expected) throws Exception {
