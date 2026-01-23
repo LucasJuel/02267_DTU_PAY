@@ -7,11 +7,14 @@ import io.cucumber.java.Before;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.PendingException;
 import io.cucumber.java.After;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -21,14 +24,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 
-import org.g10.DTO.CustomerDTO;
-import org.g10.services.CustomerProducer;
-import org.g10.services.MerchantProducer;
-import org.g10.services.PaymentProducer;
-import org.g10.services.ReportingProducer;
-import org.g10.DTO.MerchantDTO;
-import org.g10.DTO.PaymentDTO;
-import org.g10.DTO.ReportDTO;
+import org.g10.DTO.*;
+import org.g10.services.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -44,6 +41,7 @@ public class ProducerTest {
     private static final String MERCHANT_QUEUE = "account.merchant";
     private static final String PAYMENT_QUEUE = "payment.requests";
     private static final String REPORTING_QUEUE = "reporting.requests";
+    private static final String TOKEN_QUEUE = "token.requests";
     private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
     private static final String DEFAULT_QUEUE_MERCHANT_DEREGISTER = "account.merchant.deregister";
 
@@ -54,13 +52,17 @@ public class ProducerTest {
     private Channel channel;
     private CustomerProducer customerProducer;
     private MerchantProducer merchantProducer;
+    private TokenProducer tokenProducer;
     private ReportingProducer reportingProducer;
     // private PaymentProducer paymentProducer;
     private CustomerDTO customer;
     private MerchantDTO merchant;
     private ReportDTO report;
+    private TokenDTO token;
     // private PaymentDTO payment;
     private String returnedId;
+    private String tokenCustomerID;
+    TokenDTO lastTokenResponse;
 
     @BeforeAll
     public static void globalSetUp() {
@@ -83,6 +85,7 @@ public class ProducerTest {
         channel.queueDeclare(PAYMENT_QUEUE, true, false, false, null);
         channel.queueDeclare(REPORTING_QUEUE, true, false, false, null);
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+        channel.queueDeclare(TOKEN_QUEUE, true, false, false, null);
 
         customerProducer = new CustomerProducer(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
@@ -99,6 +102,15 @@ public class ProducerTest {
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 MERCHANT_QUEUE,
                 DEFAULT_QUEUE_MERCHANT_DEREGISTER
+        );
+
+        tokenProducer = new TokenProducer(
+                getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+                getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+                getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+                getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+                TOKEN_QUEUE
+
         );
 
 
@@ -326,6 +338,101 @@ public class ProducerTest {
             e.printStackTrace();
         }
     }
+
+    @Given("a registered customer {string} without tokens")
+    public void aRegisteredCustomerWithoutTokens(String cID) {
+        tokenCustomerID = cID;
+    }
+
+    @When("the customer requests {int} tokens")
+    public void theCustomerRequestsTokens(int numTokens) throws IOException, InterruptedException {
+        TokenDTO request = new TokenDTO();
+        request.setType("ADD_TOKENS");
+        request.setCustomerID(tokenCustomerID);
+        request.setAmount(numTokens);
+
+        lastTokenResponse = tokenProducer.sendTokenRequest(request);
+    }
+
+    @Then("the request is accepted")
+    public void theRequestIsGrantedAndTokensAreReceived() {
+        assertEquals("SUCCESS", lastTokenResponse.getType());
+    }
+
+    @And("{int} tokens are added")
+    public void tokensAreAdded(int arg0) {
+        assertEquals(arg0 + currentTokens, tokenService.getNumTokens(customerId));
+    }
+
+    @When("the customer pays a merchant using one token")
+    public void theCustomerPaysAMerchantUsingOneToken() throws Exception {
+        usedToken = tokenService.requestGetToken(customerId);
+        TokenDTO validation = new TokenDTO();
+        validation.setType("VALIDATE_TOKEN");
+        validation.setToken(usedToken);
+
+        lastResponse = producer.sendTokenRequest(validation);
+    }
+
+    @Then("the payment is successful")
+    public void thePaymentIsSuccessful() {
+        assertEquals("SUCCESS", lastTokenResponse.getType());
+    }
+
+    @And("the customer now has {int} unused tokens")
+    public void theCustomerNowHasUnusedTokens(int arg0) {
+        assertEquals(arg0, tokenService.getNumTokens(customerId));
+    }
+
+    @Given("a customer has used a token for a successful payment")
+    public void aCustomerHasUsedATokenForASuccessfulPayment() throws Exception {
+        TokenDTO request = new TokenDTO();
+        request.setType("ADD_TOKENS");
+        request.setCustomerID(customerId);
+        request.setAmount(1);
+        tokenProducer.sendTokenRequest(request);
+
+        usedToken = tokenService.requestGetToken(tokenCustomerID);
+        assertNotNull(usedToken, "Token was not generated");
+
+        TokenDTO validation = new TokenDTO();
+        validation.setType("VALIDATE_TOKEN");
+        validation.setToken(usedToken);
+        lastTokenResponse = tokenProducer.sendTokenRequest(validation);
+
+        assertEquals("SUCCESS", lastTokenResponse.getType(), lastTokenResponse.getErrorMSG());
+
+    }
+
+    @When("the customer attempts to pay again with the same token")
+    public void theCustomerAttemptsToPayAgainWithTheSameToken() throws IOException, InterruptedException {
+        TokenDTO validation = new TokenDTO();
+        validation.setType("VALIDATE_TOKEN");
+        validation.setToken(usedToken);
+
+        lastTokenResponse = tokenProducer.sendTokenRequest(validation);
+    }
+
+    @Then("the request is denied")
+    public void theRequestIsDenied() {
+        assertEquals("ERROR", lastTokenResponse.getType());
+    }
+
+    @Given("a registered merchant")
+    public void aRegisteredMerchant() {
+        // We assume the merchant is correctly registered in this test
+    }
+
+
+    @When("the merchant attempts to process a payment with token {string}")
+    public void theMerchantAttemptsToProcessAPaymentWithToken(String token) throws IOException, InterruptedException {
+        TokenDTO request = new TokenDTO();
+        request.setType("VALIDATE_TOKEN");
+        request.setToken(token);
+        lastTokenResponse = tokenProducer.sendTokenRequest(request);
+
+    }
+
 
 
     @After
