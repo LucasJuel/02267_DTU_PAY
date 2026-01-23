@@ -1,5 +1,7 @@
 package com.client;
-
+/**
+ @author LucasJuel
+ **/
 public class Customer {
     private String firstName;
     private String lastName;

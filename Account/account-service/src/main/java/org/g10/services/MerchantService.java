@@ -2,7 +2,9 @@ package org.g10.services;
 
 import org.g10.DTO.MerchantDTO;
 import org.g10.utils.StorageHandler;
-
+/**
+ @author TheZoap
+ **/
 
 public class MerchantService {
 

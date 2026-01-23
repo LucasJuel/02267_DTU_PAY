@@ -6,7 +6,9 @@ import org.g10.DTO.MerchantDTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+/**
+ @author LucasJuel
+ **/
 public class StorageHandler {
 
     private static org.g10.utils.StorageHandler instance;

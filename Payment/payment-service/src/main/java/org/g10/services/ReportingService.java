@@ -6,6 +6,9 @@ import org.g10.DTO.ManagerDTO;
 import org.g10.utils.StorageHandler;
 import java.util.List;
 import java.util.Map;
+/**
+ @author TheZoap
+ **/
 
 public class ReportingService {
     private final StorageHandler storageHandler = StorageHandler.getInstance();

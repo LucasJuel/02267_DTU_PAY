@@ -11,9 +11,11 @@ import jakarta.ws.rs.core.Response;
 import org.g10.services.MerchantProducer;
 import org.g10.DTO.MerchantDTO;
 
-
+/**
+ @author BertramKjær
+ **/
 @Path("/merchant")
-public class MerchantResource extends AbstractResource {
+public class    MerchantResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

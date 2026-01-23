@@ -1,5 +1,7 @@
 package com.client;
-
+/**
+ @author Martin-Surlykke
+ **/
 public class Merchant {
     private String name;
 

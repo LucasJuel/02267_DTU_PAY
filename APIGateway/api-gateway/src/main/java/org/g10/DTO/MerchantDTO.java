@@ -1,5 +1,7 @@
 package org.g10.DTO;
-
+/**
+ @author Martin-Surlykke
+ **/
 public class MerchantDTO {
     private String firstName;
     private String lastName;

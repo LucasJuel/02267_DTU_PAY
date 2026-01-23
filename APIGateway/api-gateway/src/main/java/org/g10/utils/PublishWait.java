@@ -7,6 +7,9 @@ import java.util.concurrent.CompletableFuture;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.AMQP;
 import com.google.gson.Gson;
+/**
+ @author TheZoap
+ **/
 
 public class PublishWait {
     private static final Gson gson = new Gson();

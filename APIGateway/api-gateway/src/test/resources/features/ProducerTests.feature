@@ -1,4 +1,7 @@
 @RabbitMQ
+/**
+@author BertramKjær
+**/
 Feature: RabbitMQ producers
   Scenario: Customer is registered with DTU Pay
     Given a RabbitMQ connection

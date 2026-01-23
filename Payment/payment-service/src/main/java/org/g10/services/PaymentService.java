@@ -11,7 +11,9 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ @author BertramKjær
+ **/
 
 public class PaymentService {
     private final BankService bank = new BankService_Service().getBankServicePort();

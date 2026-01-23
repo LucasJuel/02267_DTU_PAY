@@ -30,7 +30,9 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+/**
+ @author gh05tdog
+ **/
 public class PaymentConsumerSteps {
     private PaymentDTO paymentDTO = new PaymentDTO();
     private ConnectionFactory factory;

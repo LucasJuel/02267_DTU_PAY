@@ -1,5 +1,7 @@
 package org.g10.DTO;
-
+/**
+ @author BertramKjær
+ **/
 public class PaymentDTO {
     private String customerAccountId;
     private String merchantAccountId;
