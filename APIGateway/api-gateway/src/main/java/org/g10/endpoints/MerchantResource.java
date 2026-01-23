@@ -12,8 +12,9 @@ import org.g10.services.MerchantProducer;
 import org.g10.DTO.MerchantDTO;
 
 /**
- @author BertramKjær
+ @author LucasJuel
  **/
+
 @Path("/merchant")
 public class    MerchantResource extends AbstractResource {
     @POST

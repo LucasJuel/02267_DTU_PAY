@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- @author BertramKjær
+ @author LucasJuel
  **/
+
 
 public class PaymentService {
 

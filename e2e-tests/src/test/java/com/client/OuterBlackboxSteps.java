@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
- @author TheZoap
+ @author LucasJuel
  **/
 public class OuterBlackboxSteps {
     private static final int MAX_RETRIES = 12;

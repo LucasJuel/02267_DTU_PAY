@@ -9,8 +9,9 @@ import org.g10.DTO.CustomerDTO;
 import org.g10.DTO.TokenDTO;
 import org.g10.utils.PublishWait;
 /**
- @author LucasJuel
+ @author ssschoubye
  **/
+
 public class CustomerProducer implements AutoCloseable {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 5672;

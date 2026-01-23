@@ -5,10 +5,10 @@ import org.g10.utils.PublishWait;
 import com.rabbitmq.client.*;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-/**
- @author BertramKjær
- **/
 
+/**
+ @author gh05tdog
+ **/
 
 
 public class ReportingProducer implements AutoCloseable {

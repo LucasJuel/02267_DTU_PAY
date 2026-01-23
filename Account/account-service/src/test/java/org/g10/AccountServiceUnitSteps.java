@@ -11,7 +11,7 @@ import org.g10.utils.StorageHandler;
 
 import static org.junit.jupiter.api.Assertions.*;
 /**
- @author BertramKjær
+ @author ssschoubye
  **/
 public class AccountServiceUnitSteps {
 

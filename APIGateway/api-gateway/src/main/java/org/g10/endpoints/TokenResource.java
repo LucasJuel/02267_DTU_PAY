@@ -10,7 +10,7 @@ import org.g10.services.TokenProducer;
 import java.io.IOException;
 
 /**
- @author TheZoap
+ @author Martin-Surlykke
  **/
 @Path("/token")
 public class TokenResource extends AbstractResource {

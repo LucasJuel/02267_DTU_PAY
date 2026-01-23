@@ -1,6 +1,6 @@
 package org.g10.DTO;
 /**
- @author TheZoap
+ @author ssschoubye
  **/
 
 public class ReportDTO {

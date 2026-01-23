@@ -12,9 +12,8 @@ import jakarta.ws.rs.core.Response;
 import org.g10.DTO.CustomerDTO;
 import org.g10.services.CustomerProducer;
 /**
- @author Martin-Surlykke
+ @author TheZoap
  **/
-
 @Path("/customer")
 public class CustomerResource extends AbstractResource{
     @POST

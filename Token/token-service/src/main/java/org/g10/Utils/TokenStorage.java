@@ -3,7 +3,7 @@ package org.g10.Utils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 /**
- @author ssschoubye
+ @author BertramKjær
  **/
 
 public class TokenStorage {

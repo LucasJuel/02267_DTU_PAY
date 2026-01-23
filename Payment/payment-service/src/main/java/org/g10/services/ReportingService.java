@@ -7,7 +7,7 @@ import org.g10.utils.StorageHandler;
 import java.util.List;
 import java.util.Map;
 /**
- @author TheZoap
+ @author BertramKjær
  **/
 
 public class ReportingService {

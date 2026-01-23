@@ -1,6 +1,6 @@
 package org.g10.services;
 /**
- @author ssschoubye
+ @author gh05tdog
  **/
 public class PaymentServiceApplication {
     private static PaymentConsumer consumer;
