@@ -62,10 +62,10 @@ public class PaymentService {
         } catch(BankServiceException_Exception e){
             // Bank rejected the transfer (insufficient funds, unknown account, etc.)
             String reason = e.getFaultInfo() != null ? e.getFaultInfo().getMessage() : e.getMessage();
-            return "{\"error\": \"Failed to process payment: " + reason + "\"}";
+            return "{\"error\": \"Failed to process payment:\"}";
         } catch(Exception e){
             e.printStackTrace();
-            return "{\"error\": \"Failed to process payment: " + e.getMessage() + "\"}";
+            return "{\"error\": \"Failed to process payment:\"}";
         }
     }
 }
