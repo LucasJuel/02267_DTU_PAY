@@ -23,6 +23,8 @@ public class AccountServiceUnitSteps {
     private String secondMerchantId;
     private CustomerDTO fetchedCustomer;
     private MerchantDTO fetchedMerchant;
+    private StorageHandler mockStorage;
+    String deregisterSuccess;
 
     @Given("a clean account storage")
     public void aCleanAccountStorage() {
@@ -160,5 +162,74 @@ public class AccountServiceUnitSteps {
     @Then("the deregistration completes without error")
     public void theDeregistrationCompletesWithoutError() {
         assertTrue(true);
+    }
+
+    @Given("a mocked account storage that fails on register")
+    public void a_mocked_account_storage_that_fails_on_register() {
+        mockStorage = new StorageHandler(){
+            @Override
+            public void storeCustomer(String key, CustomerDTO customer) throws Exception {
+                throw new Exception("Simulated storage failure on customer register");
+            }
+
+            @Override
+            public void storeMerchant(String key, MerchantDTO merchant) throws Exception {
+                throw new Exception("Simulated storage failure on merchant register");
+            }
+        };
+    }
+
+    @When("I attempt to register a customer with first name {string}, last name {string}, CPR {string}, and bank account {string}")
+    public void i_attempt_to_register_a_customer_with_first_name_last_name_cpr_and_bank_account(String string, String string2, String string3, String string4) {
+        CustomerService faultyCustomerService = new CustomerService(mockStorage);
+        registeredCustomer = new CustomerDTO(string, string2, string3, string4);
+        customerId = faultyCustomerService.register(registeredCustomer);
+    }
+
+    @When("I attempt to register a merchant with first name {string}, last name {string}, CPR {string}, and bank account {string}")
+    public void i_attempt_to_register_a_merchant_with_first_name_last_name_cpr_and_bank_account(String string, String string2, String string3, String string4) {
+       MerchantService faultyMerchantService = new MerchantService(mockStorage);
+        registeredMerchant = new MerchantDTO(string, string2, string3, string4);
+        merchantId = faultyMerchantService.register(registeredMerchant);
+    }
+
+    @Then("the registration fails with an error")
+    public void the_registration_fails_with_an_error() {
+        assertNull(customerId, "Customer ID should be null due to registration failure");
+    }
+    @Given("a mocked account storage that fails on deregister")
+    public void a_mocked_account_storage_that_fails_on_deregister() {
+        // First initialize the services normally so they can be used
+        StorageHandler.getInstance().clearAll();
+        customerService = new CustomerService();
+        merchantService = new MerchantService();
+        
+        // Create mock storage for failure testing
+        mockStorage = new StorageHandler(){
+            @Override
+            public CustomerDTO removeCustomer(String customerId) {
+                throw new RuntimeException("Simulated storage failure on customer deregister");
+            }
+
+            @Override
+            public MerchantDTO removeMerchant(String merchantId) {
+                throw new RuntimeException("Simulated storage failure on merchant deregister");
+            }
+        };
+    }
+    @When("I attempt to deregister the merchant with the merchant id")
+    public void i_attempt_to_deregister_the_merchant_with_the_merchant_id() {
+        MerchantService faultyMerchantService = new MerchantService(mockStorage);
+        deregisterSuccess = faultyMerchantService.deregister(merchantId);
+        
+    }
+    @Then("the deregistration fails with an error")
+    public void the_deregistration_fails_with_an_error() {
+        assertEquals("Failure!", deregisterSuccess, "Deregistration should fail due to storage error");
+    }
+    @When("I attempt to deregister the customer with the customer id")
+    public void i_attempt_to_deregister_the_customer_with_the_customer_id() {
+        CustomerService faultyCustomerService = new CustomerService(mockStorage);
+        deregisterSuccess = faultyCustomerService.deregister(customerId);
     }
 }

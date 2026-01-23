@@ -6,19 +6,22 @@ import org.g10.utils.StorageHandler;
 
 public class CustomerService {
 
-    private final StorageHandler storageHandler = StorageHandler.getInstance();
+    private final StorageHandler storageHandler;
 
 
     public CustomerService() {
-
+        this.storageHandler = StorageHandler.getInstance();
     }
 
-    public String register(CustomerDTO request) {
+    public CustomerService(StorageHandler storageHandler) {
+        this.storageHandler = storageHandler;
+    }
+
+    public String register(CustomerDTO request){
         try {
             String key = java.util.UUID.randomUUID().toString();
             storageHandler.storeCustomer(key, request);
             return key;
-
 
         } catch (Exception e) {
             return null;

@@ -4,11 +4,21 @@ Feature: Account service unit behavior
     Given a clean account storage
     When I register a customer with first name "Anna", last name "Andersen", CPR "123456-7890", and bank account "account-123"
     Then the stored customer matches the registration
-
+  
+  Scenario: Register customer fails
+    Given a mocked account storage that fails on register
+    When I attempt to register a customer with first name "Anna", last name "Andersen", CPR "123456-7890", and bank account "account-123"
+    Then the registration fails with an error
+  
   Scenario: Register merchant directly via service
     Given a clean account storage
     When I register a merchant with first name "Benny", last name "Bentsen", CPR "098765-4321", and bank account "account-456"
     Then the stored merchant matches the registration
+
+  Scenario: Register merchant fails
+    Given a mocked account storage that fails on register
+    When I attempt to register a merchant with first name "Benny", last name "Bentsen", CPR "098765-4321", and bank account "account-456"
+    Then the registration fails with an error
 
   Scenario: Look up unknown customer
     Given a clean account storage
@@ -44,6 +54,13 @@ Feature: Account service unit behavior
     Then the stored customer matches the registration
     When I deregister the customer with the customer id
     Then the customer is no longer in storage
+  
+  Scenario: Deregister customer fails
+    Given a mocked account storage that fails on deregister
+    When I register a customer with first name "Eva", last name "Eriksen", CPR "111222-3333", and bank account "account-111"
+    Then the stored customer matches the registration
+    When I attempt to deregister the customer with the customer id
+    Then the deregistration fails with an error
 
   Scenario: Deregister merchant
     Given a clean account storage
@@ -51,6 +68,13 @@ Feature: Account service unit behavior
     Then the stored merchant matches the registration
     When I deregister the merchant with the merchant id
     Then the merchant is no longer in storage
+  
+  Scenario: Deregister merchant fails
+    Given a mocked account storage that fails on deregister
+    When I register a merchant with first name "Frank", last name "Frederiksen", CPR "444555-6666", and bank account "account-222"
+    Then the stored merchant matches the registration
+    When I attempt to deregister the merchant with the merchant id
+    Then the deregistration fails with an error
 
   Scenario: Deregister non-existent customer
     Given a clean account storage

@@ -18,7 +18,8 @@ public class StorageHandler {
     private final List<Map<String, Object>> payments = new ArrayList<>();
 
     // Private constructor
-    private StorageHandler() {
+    public StorageHandler() {
+
     }
 
     // Get singleton instance
@@ -29,11 +30,11 @@ public class StorageHandler {
         return instance;
     }
 
-    public void storeCustomer(String customerId, CustomerDTO customerData) {
+    public void storeCustomer(String customerId, CustomerDTO customerData) throws Exception {
         customerStorage.put(customerId, customerData);
     }
 
-    public void storeMerchant(String merchantId, MerchantDTO merchantData) {
+    public void storeMerchant(String merchantId, MerchantDTO merchantData) throws Exception {
         merchantStorage.put(merchantId, merchantData);
     }
 
