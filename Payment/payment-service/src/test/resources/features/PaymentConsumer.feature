@@ -18,9 +18,7 @@ Feature: Payment consumer persists payment events
     Given a transaction between the customer and the merchant is initiated with amount 20.5 kr and message "Payment for 20.5 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with a success message
-    And the payment event should be stored in the storage handler with correct details:
-      | merchantId | customerId | amount | message                      |
-      | torstenTO  | vivian     | 20.5   | Payment for 20.5 kr initiated |
+    And the payment event should be stored in the storage handler with correct details
 
   Scenario: Payment initiated with amount less than zero
     Given the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
@@ -51,3 +49,12 @@ Feature: Payment consumer persists payment events
     Given a transaction between the customer and the merchant is initiated with amount 30 kr and message "Payment for 30 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with a failure message indicating error
+
+  Scenario: Get all payments for a specific merchant
+    Given the customer firstname "vivian" lastname "larsen" with cpr "12345678" is registered with the bank with an initial balance of 500 kr
+    And the merchant firstname "torsten" lastname "torstenTO" with cpr "87654321" is registered with the bank with an initial balance of 500 kr
+    Given a transaction between the customer and the merchant is initiated with amount 25 kr and message "Payment for 25 kr initiated"
+    And another transaction between the customer and the merchant is initiated with amount 40 kr and message "Payment for 40 kr initiated"
+    When I register both payments with the payment service
+    Then I request all payments for merchant "torstenTO"
+    And I should receive a list containing both payment events with correct details
