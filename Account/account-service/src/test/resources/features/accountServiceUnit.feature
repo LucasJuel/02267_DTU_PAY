@@ -1,7 +1,4 @@
 Feature: Account service unit behavior
-  /**
-  @author ssschoubye
-  **/
 
   Scenario: Register customer directly via service
     Given a clean account storage

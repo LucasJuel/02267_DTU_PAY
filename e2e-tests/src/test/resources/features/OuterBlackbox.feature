@@ -1,7 +1,4 @@
 @e2e
-/**
-@author LucasJuel
-**/
 
 Feature: Outer Blackbox Payment
   Scenario: Customer pays merchant using public DTU Pay API

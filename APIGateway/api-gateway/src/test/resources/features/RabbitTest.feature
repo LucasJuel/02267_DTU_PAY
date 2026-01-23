@@ -1,8 +1,4 @@
 Feature: RabbitMQ basic publish
-  /**
-  @author ssschoubye
-  **/
-
   Scenario: Publish and consume a message
     Given a RabbitMQ connection
     When I publish "hello" to the rabbit test queue
