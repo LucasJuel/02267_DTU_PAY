@@ -120,7 +120,7 @@ public class CustomerProducer implements AutoCloseable {
             com.google.gson.Gson gson = new com.google.gson.Gson();
             return gson.fromJson(response, CustomerDTO.class);
         } catch(Exception e){
-            e.printStackTrace();
+            System.out.println("Error fetching customer: " + customerId);
             return null;
         }
     }

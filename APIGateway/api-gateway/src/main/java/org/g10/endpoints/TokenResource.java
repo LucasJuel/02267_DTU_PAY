@@ -39,12 +39,23 @@ public class TokenResource extends AbstractResource {
         request.setCustomerID(customerID);
         request.setType("GET_TOKEN");
 
-        try (TokenProducer producer = new TokenProducer()) {
-            TokenDTO response = producer.sendTokenRequest(request);
-            return Response.ok().entity(response).build();
+    try (TokenProducer producer = new TokenProducer()) {
+        TokenDTO response = producer.sendTokenRequest(request);
+        
+        // Now you can extract fields from the TokenDTO
+        String token = response.getToken();        
+          
+        
+        if ("ERROR".equals(response.getType())) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(response)
+                    .build();
         }
-        catch (Exception e)  {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        
+        return Response.ok().entity(token).build();
+    }
+    catch (Exception e)  {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
     }
 }

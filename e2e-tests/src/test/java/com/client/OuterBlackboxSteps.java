@@ -33,6 +33,8 @@ public class OuterBlackboxSteps {
     private final User merchant = new User();
     private String customerAccountId;
     private String merchantAccountId;
+    private String token;
+    private String customerDTUpayID;
 
     public OuterBlackboxSteps() {
         String envUrl = System.getenv("SERVER_URL");
@@ -70,6 +72,7 @@ public class OuterBlackboxSteps {
                 customer.getFirstName(), customer.getLastName(), customer.getCprNumber(), customerAccountId
         );
         HttpResponse<String> response = apiCall.post("/customer", body);
+        customerDTUpayID = response.body();
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
 
@@ -83,11 +86,21 @@ public class OuterBlackboxSteps {
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
     }
 
+    @And("the customer provides the merchant with a token for payment") 
+    public void theCustomerProvidesToken() throws Exception {
+
+        HttpResponse<String> response = apiCall.get("/token/" + customerDTUpayID);
+        System.out.println("Token request response: " + response);
+        assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
+        System.out.println("Token response: " + response.body());
+        token = response.body();
+    }
+
     @When("the merchant initiates a payment of {int} kr via the public API")
     public void theMerchantInitiatesPayment(int amount) throws Exception {
         String body = String.format(java.util.Locale.US,
-                "{\"customerAccountId\":\"%s\",\"merchantAccountId\":\"%s\",\"amount\":%.2f,\"message\":\"Blackbox payment\"}",
-                customerAccountId, merchantAccountId, (float) amount
+                "{\"customerToken\":\"%s\",\"merchantAccountId\":\"%s\",\"amount\":%.2f,\"message\":\"Blackbox payment\"}",
+                token, merchantAccountId, (float) amount
         );
         HttpResponse<String> response = apiCall.post("/payment", body);
         assertTrue(response.statusCode() >= 200 && response.statusCode() < 300);
