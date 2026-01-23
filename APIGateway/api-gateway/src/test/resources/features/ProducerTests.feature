@@ -50,6 +50,11 @@ Feature: RabbitMQ producers
     Given a RabbitMQ connection
     And the customer firstname "Britta" lastname "Poulsen" with cpr "22345678" is registered with the bank with an initial balance of 500 kr
     And the merchant firstname "carsten" lastname "andersen" with cpr "12654321" is registered with the bank with an initial balance of 500 kr
+    When I make a request to register the customer in DTU Pay
+    Then the customer is registered successfully
+    When I make a request to register the merchant in DTU Pay
+    Then the merchant is registered successfully
+    And the customer provides the merchant with a token for payment
     Given a transaction between the customer and the merchant is initiated with amount 20.5 kr and message "Payment for 20.5 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with a success message
@@ -59,6 +64,11 @@ Feature: RabbitMQ producers
     Given a RabbitMQ connection
     And the customer firstname "Clara" lastname "Larsson" with cpr "12356789" is registered with the bank with an initial balance of 10 kr
     And the merchant firstname "emil" lastname "petersen" with cpr "12365432" is registered with the bank with an initial balance of 500 kr
+    When I make a request to register the customer in DTU Pay
+    Then the customer is registered successfully
+    When I make a request to register the merchant in DTU Pay
+    Then the merchant is registered successfully
+    And the customer provides the merchant with a token for payment
     Given a transaction between the customer and the merchant is initiated with amount 50 kr and message "Payment for 50 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with an insufficient funds message
@@ -66,6 +76,8 @@ Feature: RabbitMQ producers
   Scenario: Payment fails due to invalid customer account
     Given a RabbitMQ connection
     And the merchant firstname "James" lastname "hansen" with cpr "32665432" is registered with the bank with an initial balance of 500 kr
+    When I make a request to register the merchant in DTU Pay
+    Then the merchant is registered successfully
     Given a transaction between the invalid customer account "invalid-cust-001" and the merchant is initiated with amount 30 kr and message "Payment for 30 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with an invalid customer account message

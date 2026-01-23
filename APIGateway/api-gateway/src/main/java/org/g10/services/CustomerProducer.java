@@ -6,6 +6,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.CustomerDTO;
+import org.g10.DTO.TokenDTO;
 import org.g10.utils.PublishWait;
 /**
  @author LucasJuel
@@ -18,11 +19,16 @@ public class CustomerProducer implements AutoCloseable {
     private static final String DEFAULT_QUEUE = "account.customer";
     private static final String CUSTOMER_REPLY_QUEUE = "account.customer.reply";
     private static final String DEFAULT_QUEUE_CUSTOMER_DEREGISTER = "account.customer.deregister";
+    private static final String TOKEN_QUEUE = "token.requests";
+    private static final String DEFAULT_QUEUE_GET_CUSTOMER = "account.customer.get";
 
     private final Connection connection;
     private final Channel channel;
     private final String queueName;
     private final String customerDeregisterQueue;
+    private final String getCustomerQueue;
+    private TokenProducer tokenProducer;
+
     public CustomerProducer() throws IOException, TimeoutException {
         this(
                 getEnv("RABBITMQ_HOST", DEFAULT_HOST),
@@ -30,14 +36,16 @@ public class CustomerProducer implements AutoCloseable {
                 getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
                 getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
                 getEnv("RABBITMQ_QUEUE", DEFAULT_QUEUE),
-                getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", DEFAULT_QUEUE_CUSTOMER_DEREGISTER)
+                getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", DEFAULT_QUEUE_CUSTOMER_DEREGISTER),
+                getEnv("RABBITMQ_QUEUE_GET_CUSTOMER", DEFAULT_QUEUE_GET_CUSTOMER)
         );
     }
 
-    public CustomerProducer(String host, int port, String username, String password, String queueName, String customerDeregisterQueue)
+    public CustomerProducer(String host, int port, String username, String password, String queueName, String customerDeregisterQueue, String getCustomerQueue)
             throws IOException, TimeoutException {
         this.queueName = queueName;
         this.customerDeregisterQueue = customerDeregisterQueue;
+        this.getCustomerQueue = getCustomerQueue;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(host);
         factory.setPort(port);
@@ -47,9 +55,20 @@ public class CustomerProducer implements AutoCloseable {
         this.channel = connection.createChannel();
         channel.queueDeclare(queueName, true, false, false, null);
         channel.queueDeclare(customerDeregisterQueue, true, false, false, null);
+        channel.queueDeclare(getCustomerQueue, true, false, false, null);
+ 
     }
 
-    public String publishCustomerRegistered(CustomerDTO customer) throws IOException {
+    public String publishCustomerRegistered(CustomerDTO customer) throws IOException, TimeoutException {
+        tokenProducer = new TokenProducer(
+            getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+            getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+            getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+            getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+            TOKEN_QUEUE
+        );
+
+
         try{
            PublishWait publishWait = new PublishWait(
                     queueName,
@@ -57,7 +76,15 @@ public class CustomerProducer implements AutoCloseable {
                     channel,
                     customer
             );
-            return publishWait.getResponse();
+            String returnedId = publishWait.getResponse();
+
+            TokenDTO newCustomerToken = new TokenDTO();
+            newCustomerToken.setCustomerID(returnedId);
+            newCustomerToken.setType("ADD_TOKENS");
+            newCustomerToken.setAmount(5);
+            tokenProducer.sendTokenRequest(newCustomerToken);
+
+            return returnedId;
         } catch(Exception e){
             e.printStackTrace();
             return "{ \"error\": \"Failed to publish message: " + e.getMessage() + "\" }";
@@ -81,6 +108,24 @@ public class CustomerProducer implements AutoCloseable {
         }
     }
 
+    public CustomerDTO publishGetCustomer(String customerId) throws IOException {
+        try{
+            java.util.Map<String, String> message = java.util.Map.of("customerId", customerId);
+              PublishWait publishWait = new PublishWait(
+                    getCustomerQueue,
+                    CUSTOMER_REPLY_QUEUE,
+                    channel,
+                    message
+                );
+            
+            String response = publishWait.getResponse();
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            return gson.fromJson(response, CustomerDTO.class);
+        } catch(Exception e){
+            System.out.println("Error fetching customer: " + customerId);
+            return null;
+        }
+    }
     @Override
     public void close() throws IOException, TimeoutException {
         if (channel != null && channel.isOpen()) {

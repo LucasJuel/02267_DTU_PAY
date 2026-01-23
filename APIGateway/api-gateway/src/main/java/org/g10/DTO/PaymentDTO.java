@@ -7,6 +7,7 @@ public class PaymentDTO {
     private String merchantAccountId;
     private float amount;
     private String message;
+    private String customerToken;
 
 
     public PaymentDTO() {
@@ -48,6 +49,12 @@ public class PaymentDTO {
     }
     public void setMessage(String message) {
         this.message = message;
+    }
+    public String getCustomerToken() {
+        return customerToken;
+    }
+    public void setCustomerToken(String customerToken) {
+        this.customerToken = customerToken;
     }
 
 }

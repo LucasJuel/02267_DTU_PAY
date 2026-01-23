@@ -3,9 +3,12 @@ package org.g10.services;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.impl.OAuth2ClientCredentialsGrantCredentialsProvider.Token;
+
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import org.g10.DTO.PaymentDTO;
+import org.g10.DTO.TokenDTO;
 import org.g10.utils.PublishWait;
 /**
  @author Martin-Surlykke
@@ -18,10 +21,19 @@ public class PaymentProducer implements AutoCloseable {
     private static final String DEFAULT_PASSWORD = "guest";
     private static final String DEFAULT_QUEUE = "payment.events";
     private static final String PAYMENT_REPLY_QUEUE = "payment.reply";
+    private static final String TOKEN_QUEUE = "token.requests";
+    private static final String TOKEN_REPLY_QUEUE = "token.reply";
+    private static final String CUSTOMER_QUEUE = "account.customer";
+    private static final String CUSTOMER_REPLY_QUEUE = "account.customer.reply";
+    private static final String GET_CUSTOMER_QUEUE = "account.customer.get";
+    private static final String CUSTOMER_DEREGISTER_QUEUE = "account.customer.deregister";
 
     private final Connection connection;
     private final Channel channel;
     private final String queueName;
+    private String bankAccountId;
+    private TokenProducer tokenProducer;
+    private CustomerProducer customerProducer;
 
     public PaymentProducer() throws IOException, TimeoutException {
         this(
@@ -33,8 +45,10 @@ public class PaymentProducer implements AutoCloseable {
         );
     }
 
+    
+
     public PaymentProducer(String host, int port, String username, String password, String queueName)
-            throws IOException, TimeoutException {
+        throws IOException, TimeoutException {
         this.queueName = queueName;
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(host);
@@ -46,7 +60,51 @@ public class PaymentProducer implements AutoCloseable {
         channel.queueDeclare(queueName, true, false, false, null);
     }
 
-    public String publishPaymentRequested(PaymentDTO payment) throws IOException {
+
+
+    public String publishPaymentRequested(PaymentDTO payment) throws IOException, TimeoutException {
+        tokenProducer = new TokenProducer(
+            getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+            getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+            getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+            getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+            TOKEN_QUEUE
+
+        );
+        
+        customerProducer = new CustomerProducer(
+            getEnv("RABBITMQ_HOST", DEFAULT_HOST),
+            getEnvInt("RABBITMQ_PORT", DEFAULT_PORT),
+            getEnv("RABBITMQ_USER", DEFAULT_USERNAME),
+            getEnv("RABBITMQ_PASSWORD", DEFAULT_PASSWORD),
+            getEnv("RABBITMQ_QUEUE", CUSTOMER_QUEUE),
+            getEnv("RABBITMQ_QUEUE_CUSTOMER_DEREGISTER", CUSTOMER_DEREGISTER_QUEUE),
+            getEnv("RABBITMQ_QUEUE_GET_CUSTOMER", GET_CUSTOMER_QUEUE)
+        );
+
+
+        TokenDTO tokenRequest = new TokenDTO();
+        tokenRequest.setToken(payment.getCustomerToken());
+        tokenRequest.setType("VALIDATE_TOKEN");
+
+        String customerId;
+        try{
+            customerId = tokenProducer.sendTokenRequest(tokenRequest).getCustomerID();
+
+            bankAccountId = customerProducer.publishGetCustomer(customerId).getBankAccountId();
+
+        } catch (Exception e){
+            return "{\"error\": \"Failed to process payment:\" Account not found\" }";
+                     
+        }
+        System.out.println("Customer ID from token: " + customerId);
+
+
+
+        payment.setCustomerAccountId(bankAccountId);
+
+
+
         try{
             PublishWait publishWait = new PublishWait(
                     queueName,

@@ -54,6 +54,7 @@ public class TokenProducer implements AutoCloseable {
 
     public TokenDTO sendTokenRequest(TokenDTO tokenDTO) throws IOException, InterruptedException {
         try {
+            System.out.println("Sending token request: " + new Gson().toJson(tokenDTO));
             PublishWait publishWait = new PublishWait(
                     this.queueName,
                     "token.reply",
@@ -62,6 +63,7 @@ public class TokenProducer implements AutoCloseable {
             );
 
             String jsonResponse = publishWait.getResponse();
+            System.out.println("Received token response: " + jsonResponse);
             return new Gson().fromJson(jsonResponse, TokenDTO.class);
         } catch (Exception e) {
             TokenDTO errorResponse = new TokenDTO();
