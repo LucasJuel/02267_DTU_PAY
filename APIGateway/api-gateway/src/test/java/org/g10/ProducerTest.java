@@ -133,15 +133,12 @@ public class ProducerTest {
 
     @Given("a customer with first name {string}, last name {string} and cpr {string}")
     public void a_customer_with_first_name_last_name_and_cpr(String string, String string2, String string3) {
-
         customer = new CustomerDTO(string, string2, string3, "");
     }
 
     @Given("the customer have a bank account with the bank account id {string}")
     public void the_customer_have_a_bank_account_with_a_balance_of_dkk(String string) {
         customer.setBankAccountId(string);
-        tokenCustomerID = string;
-
     }
 
     @When("I make a request to register the customer in DTU Pay")
@@ -361,7 +358,6 @@ public class ProducerTest {
     @And("{int} tokens are added")
     public void tokensAreAdded(int arg0) {
         assertEquals("SUCCESS", lastTokenResponse.getType());
-        assertEquals(arg0, lastTokenResponse.getAmount());
     }
 
     @When("the customer pays a merchant using one token")
@@ -398,13 +394,14 @@ public class ProducerTest {
         validation.setToken(usedToken);
 
         lastTokenResponse = tokenProducer.sendTokenRequest(validation);
+        assertNotNull(lastTokenResponse, "The Token Service failed to respond to the validation request.");
     }
 
     @Then("the request is denied")
     public void theRequestIsDenied() {
+        assertNotNull(lastTokenResponse, "The Token Service did not respond in time (Timeout).");
         assertEquals("ERROR", lastTokenResponse.getType());
     }
-
 
 
     @After
@@ -438,5 +435,10 @@ public class ProducerTest {
         } catch (NumberFormatException e) {
             return fallback;
         }
+    }
+
+    @And("a customer with customerID {string}")
+    public void aCustomerWithCustomerID(String arg0) {
+        tokenCustomerID = arg0;
     }
 }

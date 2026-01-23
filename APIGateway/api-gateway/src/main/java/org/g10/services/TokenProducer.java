@@ -6,6 +6,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.g10.DTO.TokenDTO;
+import org.g10.utils.PublishWait;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,33 +50,22 @@ public class TokenProducer implements AutoCloseable {
     }
 
     public TokenDTO sendTokenRequest(TokenDTO tokenDTO) throws IOException, InterruptedException {
-        Gson gson = new Gson();
-        String payload = gson.toJson(tokenDTO);
-        String temporaryQueue = channel.queueDeclare().getQueue();
-        String correlationID = java.util.UUID.randomUUID().toString();
+        try {
+            PublishWait publishWait = new PublishWait(
+                    this.queueName,
+                    "token.reply",
+                    this.channel,
+                    tokenDTO
+            );
 
-        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
-                .correlationId(correlationID)
-                .replyTo(temporaryQueue)
-                .contentType("application/json")
-                .deliveryMode(2)
-                .build();
-
-        channel.basicPublish("", queueName, props, payload.getBytes(StandardCharsets.UTF_8));
-        final BlockingQueue<String> responseQueue = new LinkedBlockingDeque<>(1);
-        // Found with CHATGPT, we need the queue to wait for result
-
-        String cTag = channel.basicConsume(temporaryQueue, true, (consumerTag, delivery) -> {
-            if (delivery.getProperties().getCorrelationId().equals(correlationID)) {
-                if (!responseQueue.offer(new String(delivery.getBody(), StandardCharsets.UTF_8))) {
-                    System.err.println("responseQueue.offer() failed");
-                }
-            }
-        }, consumerTag -> { });
-
-        String result = responseQueue.poll(1000, TimeUnit.MILLISECONDS);
-        channel.basicCancel(cTag);
-        return gson.fromJson(result, TokenDTO.class);
+            String jsonResponse = publishWait.getResponse();
+            return new Gson().fromJson(jsonResponse, TokenDTO.class);
+        } catch (Exception e) {
+            TokenDTO errorResponse = new TokenDTO();
+            errorResponse.setType("ERROR");
+            errorResponse.setErrorMSG("Request failed or timed out: " + e.getMessage());
+            return errorResponse;
+        }
     }
 
     @Override

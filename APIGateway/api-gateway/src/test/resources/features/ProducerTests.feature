@@ -49,8 +49,7 @@ Feature: RabbitMQ producers
 
   Scenario: merchant uses a token successfully, and then again unsuccessfully
     Given a RabbitMQ connection
-    And a customer with first name "Thomas", last name "Tokem" and cpr "186750-4333"
-    And the customer have a bank account with the bank account id "token-account-123"
+    And a customer with customerID "customer123"
     When the customer requests 2 tokens
     Then the request is accepted
     And 2 tokens are added
