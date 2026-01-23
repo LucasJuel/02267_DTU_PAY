@@ -23,13 +23,9 @@ public class TokenStorage {
         return tokens.getFirst();
     }
 
-    public boolean consumeToken(String token) {
+    public void consumeToken(String token) {
         String customerId = tokenCustomers.remove(token);
-        if (customerId != null) {
-            customerTokens.get(customerId).remove(token);
-            return true;
-        }
-        return false;
+        customerTokens.get(customerId).remove(token);
     }
 
     public void addTokens(String customerId, int numberOfTokens) {
@@ -42,7 +38,6 @@ public class TokenStorage {
         }
     }
     public String getCustomerFromToken(String token) {
-
         return tokenCustomers.get(token);
     }
 

@@ -3,8 +3,6 @@ package org.g10.utils;
 import org.g10.DTO.CustomerDTO;
 import org.g10.DTO.MerchantDTO;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 /**
  @author BertramKjær
@@ -15,9 +13,6 @@ public class StorageHandler {
 
     private final Map<String, CustomerDTO> customerStorage = new java.util.HashMap<>();
     private final Map<String, MerchantDTO> merchantStorage = new java.util.HashMap<>();
-
-    // Add in-memory payments storage
-    private final List<Map<String, Object>> payments = new ArrayList<>();
 
     // Private constructor
     public StorageHandler() {
@@ -59,13 +54,9 @@ public class StorageHandler {
     public MerchantDTO removeMerchant(String merchantId) {
         return merchantStorage.remove(merchantId);
     }
-    public synchronized List<Map<String, Object>> readPayments() {
-        return new ArrayList<>(payments);
-    }
 
     public void clearAll() {
         customerStorage.clear();
         merchantStorage.clear();
-        payments.clear();
     }
 }

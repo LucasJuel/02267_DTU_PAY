@@ -11,7 +11,8 @@ public class TokenDTO {
     private String token;
     private String errorMSG;
 
-    public TokenDTO() {}
+    public TokenDTO() {
+    }
 
     public String getType() {
         return type;

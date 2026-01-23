@@ -13,11 +13,11 @@ public class TokenService {
     public boolean requestAddTokens(String customerId, int amount) {
 
         try {
-            int currentAmount = storage.getNumberOfTokens(customerId);
             if (customerId == null || customerId.isEmpty()) {
                 throw new Exception("Customer ID is empty");
             }
-            else if (currentAmount > 1) {
+            int currentAmount = storage.getNumberOfTokens(customerId);
+            if (currentAmount > 1) {
                 throw new Exception("User has more than one token");
             }
             else if (amount < 1 || amount > 5) {
@@ -40,13 +40,7 @@ public class TokenService {
             System.err.println("Customer id not found");
             throw new Exception("Invalid token");
         }
-
-        boolean consumed = storage.consumeToken(token);
-        if (!consumed) {
-            System.err.println("Consumed token does not match stored token");
-            throw new Exception("Consumption of token failed");
-
-        }
+        storage.consumeToken(token);
         return customerId;
 
     }

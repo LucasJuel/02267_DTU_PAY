@@ -43,3 +43,39 @@ Feature: Token Management
     Then the customer now has 1 unused tokens
     When the customer requests 6 tokens
     Then the request is denied
+  
+  Scenario: Customer requests less than the minimum allowed tokens
+    Given a registered customer "c123" without tokens
+    When the customer requests 0 tokens
+    Then the request is denied
+
+  Scenario: A request for adding tokens fails due to customerId being null
+    Given a customer with null customerId
+    When the customer attempts to request 5 tokens
+    Then the request fails with an error
+  
+  Scenario: A request for adding tokens fails due to customerId being empty
+    Given a customer with empty customerId
+    When the customer attempts to request 3 tokens
+    Then the request fails with an error
+
+  Scenario: A request for consuming a token for customer with customerId null
+    Given a customer with null customerId
+    When the customer attempts to consume a token
+    Then the request fails with an error
+
+  Scenario: A non-existing customer tries to request tokens
+    Given a non-existing customer "c999"
+    When the customer attempts to get their token
+    Then the request fails with an error
+  
+  Scenario: A customer with more than one token has all tokens removed
+    Given a registered customer "c123" with 3 tokens
+    When all tokens are removed for the customer
+    Then the customer has zero tokens
+  
+  Scenario: A Token DTO is created and its fields are verified
+    Given a token value "tokenXYZ" and customerId "custABC"
+    And an amount of 4 tokens, type "VALIDATE_TOKEN", and error message "None"
+    When a Token DTO is created with these values
+    Then the Token DTO has
