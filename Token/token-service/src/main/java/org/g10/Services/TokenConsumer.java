@@ -103,6 +103,18 @@ public class TokenConsumer implements AutoCloseable {
                         response.setErrorMSG("VALIDATE TOKEN FAILED");
                         break;
 
+                    case "GET_TOKEN":
+                        String token = tokenService.getToken(request.getCustomerID());
+                        if (token != null) {
+                            response.setToken(token);
+                            response.setType("SUCCESS");
+                            response.setErrorMSG("TOKEN RETRIEVED");
+                            break;
+                        }
+                        response.setType("ERROR");
+                        response.setErrorMSG("TOKEN RETRIEVAL FAILED");
+                        break;
+
                     default:
                         response.setType("ERROR");
                         response.setErrorMSG("UNKNOWN REQUEST TYPE: " + request.getType());

@@ -10,7 +10,8 @@ Feature: Token Management
     And the customer now has 4 unused tokens
 
   Scenario: Customer attempts to reuse a consumed token
-    Given a customer has used a token for a successful payment
+    Given a registered customer "c321" without tokens
+    And the customer has used a token for a successful payment
     When the customer attempts to pay again with the same token
     Then the request is denied
 

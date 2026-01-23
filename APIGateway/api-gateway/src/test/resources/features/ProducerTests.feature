@@ -62,7 +62,7 @@ Feature: RabbitMQ producers
     And the merchant firstname "emil" lastname "petersen" with cpr "12365432" is registered with the bank with an initial balance of 500 kr
     Given a transaction between the customer and the merchant is initiated with amount 50 kr and message "Payment for 50 kr initiated"
     When I register the payment with the payment service
-    Then the payment service should respond with an insufficient funds message  
+    Then the payment service should respond with an insufficient funds message
 
   Scenario: Payment fails due to invalid customer account
     Given a RabbitMQ connection
@@ -70,3 +70,15 @@ Feature: RabbitMQ producers
     Given a transaction between the invalid customer account "invalid-cust-001" and the merchant is initiated with amount 30 kr and message "Payment for 30 kr initiated"
     When I register the payment with the payment service
     Then the payment service should respond with an invalid customer account message
+
+  Scenario: merchant uses a token successfully, and then again unsuccessfully
+    Given a RabbitMQ connection
+    And a customer with customerID "customer123"
+    When the customer requests 2 tokens
+    Then the request is accepted
+    And 2 tokens are added
+    When the customer pays a merchant using one token
+    Then the payment is successful
+    And the customer now has 1 unused tokens
+    When the customer attempts to pay again with the same token
+    Then the request is denied
